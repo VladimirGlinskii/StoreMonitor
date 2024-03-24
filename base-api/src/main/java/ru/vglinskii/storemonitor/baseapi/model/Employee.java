@@ -9,20 +9,23 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import ru.vglinskii.storemonitor.baseapi.enums.EmployeeType;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
 @Table(name = "employee")
 public class Employee extends BaseEntity {
+    @Column(name = "secret", nullable = false, length = 127)
+    private String secret;
+
     @Column(name = "first_name", nullable = false, length = 63)
     private String firstName;
 

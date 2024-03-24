@@ -24,7 +24,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "sensor")
 public class Sensor extends BaseEntity {
-    @Column(name = "location")
+    @Column(name = "location", nullable = false)
     private String location;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

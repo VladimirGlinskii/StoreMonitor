@@ -1,0 +1,40 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="vladimir.glinskiy99@gmail.com" id="2024-03-26T11-08-create-sensor-table">
+        <createTable tableName="sensor">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="factory_code" type="VARCHAR(15)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="inventory_number" type="VARCHAR(15)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="location" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="store_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="sensor-store-idx" tableName="sensor">
+            <column name="store_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="store_id" baseTableName="sensor"
+                                 constraintName="sensor-store-fk" onDelete="CASCADE"
+                                 referencedColumnNames="id" referencedTableName="store"/>
+
+        <addUniqueConstraint tableName="sensor" columnNames="inventory_number,store_id"/>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,34 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="vladimir.glinskiy99@gmail.com" id="2024-03-26T11-12-create-sensor-value-table">
+        <createTable tableName="sensor_value">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="datetime" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unit" type="ENUM('CELSIUS', 'FAHRENHEIT')">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="FLOAT(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sensor_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="sensor_value-sensor-idx" tableName="sensor_value">
+            <column name="sensor_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="sensor_id" baseTableName="sensor_value"
+                                 constraintName="sensor_value-sensor-fk" onDelete="CASCADE"
+                                 referencedColumnNames="id" referencedTableName="sensor"/>
+
+        <addUniqueConstraint tableName="sensor_value" columnNames="datetime,sensor_id"/>
+    </changeSet>
+</databaseChangeLog>

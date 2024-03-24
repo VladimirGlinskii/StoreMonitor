@@ -1,12 +1,16 @@
 package ru.vglinskii.storemonitor.baseapi.model;
 
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,12 +22,16 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "cash_register")
-public class CashRegister extends BaseEntity {
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    private Store store;
+@Table(name = "cash_register_session")
+public class CashRegisterSession extends BaseEntity {
+    @OneToOne()
+    @JoinColumn(name = "cashier_id")
+    private Employee cashier;
 
-    @Column(name = "inventory_number", nullable = false, length = 15)
-    private String inventoryNumber;
+    @Column(name = "closed_at")
+    private LocalDateTime closedAt;
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "cash_register_id", nullable = false)
+    private CashRegister cashRegister;
 }

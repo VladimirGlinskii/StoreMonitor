@@ -1,0 +1,44 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="vladimir.glinskiy99@gmail.com" id="2024-03-26T11-04-create-incident-table">
+        <createTable tableName="incident">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="called_ambulance" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="called_fire_department" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="called_gas_service" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="called_police" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="datetime" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_type" type="ENUM('THEFT', 'HOLIGANITY', 'INJURY')">
+                <constraints nullable="false"/>
+            </column>
+            <column name="store_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="incident-store-idx" tableName="incident">
+            <column name="store_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="store_id" baseTableName="incident"
+                                 constraintName="incident-store-fk" onDelete="CASCADE"
+                                 referencedColumnNames="id" referencedTableName="store"/>
+    </changeSet>
+</databaseChangeLog>
