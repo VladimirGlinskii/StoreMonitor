@@ -1,11 +1,11 @@
 package ru.vglinskii.storemonitor.baseapi.utils;
 
 import java.time.LocalDateTime;
-import ru.vglinskii.storemonitor.baseapi.enums.EmployeeType;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
 import ru.vglinskii.storemonitor.baseapi.model.Employee;
 import ru.vglinskii.storemonitor.baseapi.model.Store;
+import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 
 public class TestDataGenerator {
     public Store createStore(long id) {

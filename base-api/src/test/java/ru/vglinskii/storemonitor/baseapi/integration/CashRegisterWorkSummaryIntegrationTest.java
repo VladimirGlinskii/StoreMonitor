@@ -26,7 +26,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.vglinskii.storemonitor.baseapi.TestBase;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersWorkSummaryDtoResponse;
-import ru.vglinskii.storemonitor.baseapi.enums.EmployeeType;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
 import ru.vglinskii.storemonitor.baseapi.model.Employee;
 import ru.vglinskii.storemonitor.baseapi.model.Store;
@@ -35,6 +34,7 @@ import ru.vglinskii.storemonitor.baseapi.repository.CashRegisterSessionRepositor
 import ru.vglinskii.storemonitor.baseapi.repository.EmployeeRepository;
 import ru.vglinskii.storemonitor.baseapi.repository.StoreRepository;
 import ru.vglinskii.storemonitor.baseapi.utils.TestDataGenerator;
+import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CashRegisterWorkSummaryIntegrationTest extends TestBase {
@@ -142,7 +142,7 @@ public class CashRegisterWorkSummaryIntegrationTest extends TestBase {
 
     protected HttpHeaders createHeadersForStore(Store store) {
         var headers = new HttpHeaders();
-        headers.set("storeId", store.getId().toString());
+        headers.set("X-Store-Id", store.getId().toString());
 
         return headers;
     }

@@ -16,7 +16,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.vglinskii.storemonitor.baseapi.enums.SensorUnit;
+import ru.vglinskii.storemonitor.common.enums.SensorUnit;
 
 @Getter
 @Setter

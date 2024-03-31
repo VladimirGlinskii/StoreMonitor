@@ -2,6 +2,7 @@ package ru.vglinskii.storemonitor.baseapi.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -16,6 +17,7 @@ import ru.vglinskii.storemonitor.baseapi.exception.AppRuntimeException;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
 
 @ControllerAdvice
+@Slf4j
 public class GlobalControllerExceptionHandler {
     @ExceptionHandler(value = {AppRuntimeException.class})
     public ResponseEntity<ErrorsDtoResponse> handleAppRuntimeException(AppRuntimeException e) {
@@ -73,6 +75,7 @@ public class GlobalControllerExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorsDtoResponse> handleException(Exception e) {
+        log.error("Unhandled exception", e);
         return new ResponseEntity<>(
                 new ErrorsDtoResponse(new ErrorDtoResponse(ErrorCode.UNKNOWN_SERVER_ERROR)),
                 HttpStatus.INTERNAL_SERVER_ERROR

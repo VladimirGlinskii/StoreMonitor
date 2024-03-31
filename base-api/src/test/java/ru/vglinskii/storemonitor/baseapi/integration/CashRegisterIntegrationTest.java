@@ -20,7 +20,6 @@ import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterDtoRespons
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterStatusDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.UpdateCashRegisterStatusDtoRequest;
-import ru.vglinskii.storemonitor.baseapi.enums.EmployeeType;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
@@ -31,6 +30,7 @@ import ru.vglinskii.storemonitor.baseapi.repository.CashRegisterSessionRepositor
 import ru.vglinskii.storemonitor.baseapi.repository.EmployeeRepository;
 import ru.vglinskii.storemonitor.baseapi.repository.StoreRepository;
 import ru.vglinskii.storemonitor.baseapi.utils.TestDataGenerator;
+import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CashRegisterIntegrationTest extends TestBase {
@@ -127,7 +127,7 @@ public class CashRegisterIntegrationTest extends TestBase {
 
     protected HttpHeaders createHeadersForStore(Store store) {
         var headers = new HttpHeaders();
-        headers.set("storeId", store.getId().toString());
+        headers.set("X-Store-Id", store.getId().toString());
 
         return headers;
     }
