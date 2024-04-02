@@ -13,7 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import ru.vglinskii.storemonitor.baseapi.enums.EmployeeType;
+import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 
 @Getter
 @Setter

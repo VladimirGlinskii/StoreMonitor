@@ -17,7 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.vglinskii.storemonitor.baseapi.enums.IncidentType;
+import ru.vglinskii.storemonitor.common.enums.IncidentType;
 
 @Getter
 @Setter

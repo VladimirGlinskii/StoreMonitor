@@ -1,0 +1,4 @@
+ru\vglinskii\storemonitor\common\enums\IncidentType.class
+ru\vglinskii\storemonitor\common\dto\AuthorizationContextDto.class
+ru\vglinskii\storemonitor\common\enums\EmployeeType.class
+ru\vglinskii\storemonitor\common\enums\SensorUnit.class

@@ -18,8 +18,16 @@
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
         <maven-checkstyle-plugin.configLocation>checkstyle.xml</maven-checkstyle-plugin.configLocation>
         <mysql-connector-java.version>8.0.33</mysql-connector-java.version>
+        <common.version>1.0-SNAPSHOT</common.version>
+        <logback.encoder.version>7.4</logback.encoder.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>ru.vglinskii.store-monitor</groupId>
+            <artifactId>common</artifactId>
+            <version>${common.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -59,6 +67,11 @@
             <artifactId>liquibase-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>${logback.encoder.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -81,10 +94,10 @@
                 <version>${liquibase.version}</version>
                 <configuration>
                     <driver>com.mysql.cj.jdbc.Driver</driver>
-                    <url>jdbc:mysql://localhost:3306/store-monitor</url>
-                    <username>root</username>
-                    <password>root</password>
-                    <outputChangeLogFile>src/main/resources/db/changelog/changelog.xml</outputChangeLogFile>
+                    <url>jdbc:mysql://rc1a-v47b0x3acmofrfcp.mdb.yandexcloud.net:3306/base-api</url>
+                    <username>vglinskii</username>
+                    <password>adminadmin</password>
+                    <changeLogFile>src/main/resources/db/changelog/changelog.xml</changeLogFile>
                 </configuration>
             </plugin>
         </plugins>

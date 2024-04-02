@@ -12,7 +12,6 @@ import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterStatusDtoR
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersWorkSummaryDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.UpdateCashRegisterStatusDtoRequest;
-import ru.vglinskii.storemonitor.baseapi.enums.EmployeeType;
 import ru.vglinskii.storemonitor.baseapi.exception.AppRuntimeException;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
@@ -21,6 +20,7 @@ import ru.vglinskii.storemonitor.baseapi.repository.CashRegisterRepository;
 import ru.vglinskii.storemonitor.baseapi.repository.CashRegisterSessionRepository;
 import ru.vglinskii.storemonitor.baseapi.repository.EmployeeRepository;
 import ru.vglinskii.storemonitor.baseapi.repository.StoreRepository;
+import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 
 @Service
 public class CashRegisterService {

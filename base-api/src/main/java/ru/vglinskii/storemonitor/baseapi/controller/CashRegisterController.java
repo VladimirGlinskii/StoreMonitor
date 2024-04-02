@@ -3,6 +3,7 @@ package ru.vglinskii.storemonitor.baseapi.controller;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,7 @@ import ru.vglinskii.storemonitor.baseapi.service.CashRegisterService;
 
 @RestController
 @RequestMapping("/api/cash-registers")
+@Slf4j
 public class CashRegisterController {
     private final CashRegisterService cashRegisterService;
 
@@ -30,46 +32,52 @@ public class CashRegisterController {
 
     @PostMapping
     public CashRegisterDtoResponse create(
-            @RequestHeader("storeId") long storeId,
+            @RequestHeader("X-Store-Id") long storeId,
             @Valid @RequestBody CreateCashRegisterDtoRequest request
     ) {
+        log.info("Creating cash register in store {}", storeId);
         return cashRegisterService.create(storeId, request);
     }
 
     @DeleteMapping("{id}")
     public void delete(
-            @RequestHeader("storeId") long storeId,
+            @RequestHeader("X-Store-Id") long storeId,
             @PathVariable long id
     ) {
+        log.info("Deleting cash register by id={} in store {}", id, storeId);
         cashRegisterService.delete(storeId, id);
     }
 
     @PostMapping("{id}/sessions")
     public void openSession(
-            @RequestHeader("storeId") long storeId,
+            @RequestHeader("X-Store-Id") long storeId,
             @PathVariable long id,
             @Valid @RequestBody UpdateCashRegisterStatusDtoRequest request
     ) {
+        log.info("Opening cash register {} in store {}", id, storeId);
         cashRegisterService.openSession(storeId, id, request);
     }
 
     @DeleteMapping("{id}/sessions")
     public void closeSession(
-            @RequestHeader("storeId") long storeId,
+            @RequestHeader("X-Store-Id") long storeId,
             @PathVariable long id,
             @Valid @RequestBody UpdateCashRegisterStatusDtoRequest request
     ) {
+        log.info("Closing cash register {} in store {}", id, storeId);
         cashRegisterService.closeSession(storeId, id, request);
     }
 
     @GetMapping("statuses")
-    public List<CashRegisterStatusDtoResponse> getStatuses(@RequestHeader("storeId") long storeId) {
+    public List<CashRegisterStatusDtoResponse> getStatuses(
+            @RequestHeader("X-Store-Id") long storeId
+    ) {
         return cashRegisterService.getStatuses(storeId);
     }
 
     @GetMapping("work-summary")
     public CashRegistersWorkSummaryDtoResponse getWorkSummary(
-            @RequestHeader() long storeId,
+            @RequestHeader("X-Store-Id") long storeId,
             @RequestParam() LocalDateTime from,
             @RequestParam() LocalDateTime to
     ) {

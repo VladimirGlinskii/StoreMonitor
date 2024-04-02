@@ -11,5 +11,7 @@
     <include file="2024-03-26T11-08-create-sensor-table.xml" relativeToChangelogFile="true"/>
     <include file="2024-03-26T11-12-create-sensor-value-table.xml" relativeToChangelogFile="true"/>
     <include file="2024-03-26T11-17-create-report-table.xml" relativeToChangelogFile="true"/>
+    <include file="2024-04-02T16-10-add-unique-constraint-for-employee-secret.xml" relativeToChangelogFile="true"/>
+    <include file="2024-04-02T16-18-insert-initial-data.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

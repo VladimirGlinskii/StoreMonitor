@@ -1,6 +1,5 @@
 package ru.vglinskii.storemonitor.baseapi.utils;
 
-import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,7 +21,7 @@ public class CashRegisterTestApi extends BaseTestApi {
                 .perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(request))
-                        .header("storeId", storeId)
+                        .header("X-Store-Id", storeId)
                 );
     }
 
@@ -35,7 +34,7 @@ public class CashRegisterTestApi extends BaseTestApi {
                 .perform(post(BASE_URL + "/" + id + "/sessions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(request))
-                        .header("storeId", storeId)
+                        .header("X-Store-Id", storeId)
                 );
     }
 
@@ -48,19 +47,19 @@ public class CashRegisterTestApi extends BaseTestApi {
                 .perform(delete(BASE_URL + "/" + id + "/sessions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(request))
-                        .header("storeId", storeId)
+                        .header("X-Store-Id", storeId)
                 );
     }
 
     public ResultActions deleteCashRegister(long storeId, long id) throws Exception {
         return mockMvc.perform(delete(BASE_URL + "/" + id)
-                .header("storeId", storeId)
+                .header("X-Store-Id", storeId)
         );
     }
 
     public ResultActions getCashRegistersStatuses(long storeId) throws Exception {
         return mockMvc.perform(get(BASE_URL + "/statuses")
-                .header("storeId", storeId)
+                .header("X-Store-Id", storeId)
         );
     }
 
@@ -70,7 +69,7 @@ public class CashRegisterTestApi extends BaseTestApi {
             String to
     ) throws Exception {
         return mockMvc.perform(get(BASE_URL + "/work-summary")
-                .header("storeId", storeId)
+                .header("X-Store-Id", storeId)
                 .queryParam("from", from)
                 .queryParam("to", to)
         );
