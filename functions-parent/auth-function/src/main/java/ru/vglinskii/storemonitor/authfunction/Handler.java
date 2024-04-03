@@ -1,9 +1,9 @@
 package ru.vglinskii.storemonitor.authfunction;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Properties;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.authfunction.dto.ResponseDto;
 import ru.vglinskii.storemonitor.authfunction.service.AuthService;
 import ru.vglinskii.storemonitor.functionscommon.config.ApplicationProperties;
@@ -14,8 +14,8 @@ import ru.vglinskii.storemonitor.functionscommon.utils.serialization.AppObjectMa
 import yandex.cloud.sdk.functions.Context;
 import yandex.cloud.sdk.functions.YcFunction;
 
-@Slf4j
 public class Handler implements YcFunction<RequestDto, ResponseDto> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Handler.class);
     private ObjectMapper objectMapper;
     private ApplicationProperties properties;
     private DatabaseConnectivity databaseConnectivity;
@@ -35,7 +35,7 @@ public class Handler implements YcFunction<RequestDto, ResponseDto> {
 
     @Override
     public ResponseDto handle(RequestDto request, Context context) {
-        log.info("Received request {}", request);
+        LOGGER.info("Received request {}", request);
 
         try {
             if (databaseConnectivity.getConnection() == null) {
@@ -49,14 +49,16 @@ public class Handler implements YcFunction<RequestDto, ResponseDto> {
                     .isAuthorized(authorizationContext != null)
                     .context(authorizationContext)
                     .build();
-        } catch (JsonProcessingException e) {
+        } catch (Throwable e) {
+            LOGGER.error("Unhandled exception", e);
+
             return ResponseDto.builder()
                     .isAuthorized(false)
                     .build();
         }
     }
 
-    private void initDatabaseConnection() throws JsonProcessingException {
+    private void initDatabaseConnection() {
         var dbProps = new Properties();
         dbProps.setProperty("ssl", "true");
         dbProps.setProperty("user", properties.getDbUser());

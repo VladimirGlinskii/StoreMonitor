@@ -130,6 +130,10 @@ resource "yandex_mdb_mysql_user" "base-api-db-admin" {
     database_name = yandex_mdb_mysql_database.base-api-db.name
     roles         = ["ALL"]
   }
+
+  connection_limits {
+    max_user_connections = 50
+  }
 }
 
 resource "yandex_container_registry" "container_registry" {
