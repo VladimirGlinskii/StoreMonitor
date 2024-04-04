@@ -1,7 +1,7 @@
 package ru.vglinskii.storemonitor.authfunction.service;
 
 import ru.vglinskii.storemonitor.common.dto.AuthorizationContextDto;
-import ru.vglinskii.storemonitor.functionscommon.dao.EmployeeDao;
+import ru.vglinskii.storemonitor.authfunction.dao.EmployeeDao;
 
 public class AuthService {
     private EmployeeDao employeeDao;

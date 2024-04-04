@@ -2,12 +2,12 @@ package ru.vglinskii.storemonitor.functionscommon.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import ru.vglinskii.storemonitor.functionscommon.utils.HttpStatus;
+import org.apache.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
-    UNKNOWN_SERVER_ERROR("Something went wrong on server", HttpStatus.INTERNAL_SERVER_ERROR),
+    UNKNOWN_SERVER_ERROR("Something went wrong on server", HttpStatus.SC_INTERNAL_SERVER_ERROR),
     INVALID_REQUEST("Invalid request"),
     FIELD_NOT_VALID("This field value is not valid");
 
@@ -15,6 +15,6 @@ public enum ErrorCode {
     private final int httpStatus;
 
     ErrorCode(String message) {
-        this(message, HttpStatus.BAD_REQUEST);
+        this(message, HttpStatus.SC_BAD_REQUEST);
     }
 }
