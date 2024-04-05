@@ -302,3 +302,64 @@ security:
   - apiKeyAuth: []
 EOT
 }
+
+resource "yandex_logging_group" "cashier-simulator_log" {
+  name      = "${var.project_name}-cashier-simulator-logs"
+  folder_id = yandex_resourcemanager_folder.folder.id
+}
+
+resource "yandex_storage_object" "cashier-simulator-package" {
+  access_key  = yandex_storage_bucket.functions-bucket.access_key
+  secret_key  = yandex_storage_bucket.functions-bucket.secret_key
+  bucket      = yandex_storage_bucket.functions-bucket.bucket
+  key         = "cashier-simulator.zip"
+  source      = "../cashier-simulator.zip"
+  source_hash = filemd5("../cashier-simulator.zip")
+}
+
+resource "yandex_function" "cashier-simulator-function" {
+  folder_id          = yandex_resourcemanager_folder.folder.id
+  name               = "${var.project_name}-cashier-simulator"
+  user_hash          = "${yandex_storage_object.cashier-simulator-package.source_hash}@1"
+  runtime            = "java21"
+  entrypoint         = "ru.vglinskii.storemonitor.cashiersimulator.Handler"
+  memory             = "256"
+  service_account_id = yandex_iam_service_account.sa.id
+  execution_timeout  = 600
+  package {
+    bucket_name = yandex_storage_object.cashier-simulator-package.bucket
+    object_name = yandex_storage_object.cashier-simulator-package.key
+  }
+  secrets {
+    id                   = yandex_lockbox_secret.default_lockbox.id
+    version_id           = yandex_lockbox_secret_version.default_lockbox_version.id
+    key                  = "DB_USERNAME"
+    environment_variable = "DB_USERNAME"
+  }
+  secrets {
+    id                   = yandex_lockbox_secret.default_lockbox.id
+    version_id           = yandex_lockbox_secret_version.default_lockbox_version.id
+    key                  = "DB_PASSWORD"
+    environment_variable = "DB_PASSWORD"
+  }
+  environment = {
+    DB_URL       = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api"
+    BASE_API_URL = "https://${yandex_api_gateway.pa-api-gateway.domain}/api"
+  }
+  log_options {
+    log_group_id = yandex_logging_group.cashier-simulator_log.id
+    min_level    = "INFO"
+  }
+}
+
+resource "yandex_function_trigger" "cashier-simulator_trigger" {
+  folder_id = yandex_resourcemanager_folder.folder.id
+  name      = "${var.project_name}-cashier-simulator-trigger"
+  timer {
+    cron_expression = "0/20 * ? * * *"
+  }
+  function {
+    id                 = yandex_function.cashier-simulator-function.id
+    service_account_id = yandex_iam_service_account.sa.id
+  }
+}
