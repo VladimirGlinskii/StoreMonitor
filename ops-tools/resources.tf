@@ -225,8 +225,8 @@ resource "yandex_storage_object" "auth-function-package" {
   secret_key  = yandex_storage_bucket.functions-bucket.secret_key
   bucket      = yandex_storage_bucket.functions-bucket.bucket
   key         = "auth-function.zip"
-  source      = "../auth-function.zip"
-  source_hash = filemd5("../auth-function.zip")
+  source      = "../functions-build/auth-function.zip"
+  source_hash = filemd5("../functions-build/auth-function.zip")
 }
 
 resource "yandex_function" "auth-function" {
@@ -313,8 +313,8 @@ resource "yandex_storage_object" "cashier-simulator-package" {
   secret_key  = yandex_storage_bucket.functions-bucket.secret_key
   bucket      = yandex_storage_bucket.functions-bucket.bucket
   key         = "cashier-simulator.zip"
-  source      = "../cashier-simulator.zip"
-  source_hash = filemd5("../cashier-simulator.zip")
+  source      = "../functions-build/cashier-simulator.zip"
+  source_hash = filemd5("../functions-build/cashier-simulator.zip")
 }
 
 resource "yandex_function" "cashier-simulator-function" {

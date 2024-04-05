@@ -16,3 +16,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Builded cloud functions
+functions-build/
