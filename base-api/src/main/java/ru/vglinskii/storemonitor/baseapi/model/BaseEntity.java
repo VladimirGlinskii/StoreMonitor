@@ -6,7 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,9 +29,9 @@ public abstract class BaseEntity {
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)
-    protected LocalDateTime createdAt;
+    protected Instant createdAt;
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
-    protected LocalDateTime updatedAt;
+    protected Instant updatedAt;
 }

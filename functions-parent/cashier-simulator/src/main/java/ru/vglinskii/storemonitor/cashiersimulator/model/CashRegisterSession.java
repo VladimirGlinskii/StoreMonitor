@@ -1,6 +1,6 @@
 package ru.vglinskii.storemonitor.cashiersimulator.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -10,6 +10,6 @@ import ru.vglinskii.storemonitor.functionscommon.model.BaseEntity;
 @Getter
 @Setter
 public class CashRegisterSession extends BaseEntity {
-    private LocalDateTime closedAt;
+    private Instant closedAt;
     private long cashierId;
 }

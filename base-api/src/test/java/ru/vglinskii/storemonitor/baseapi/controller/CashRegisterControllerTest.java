@@ -1,7 +1,8 @@
 package ru.vglinskii.storemonitor.baseapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -49,8 +50,8 @@ public class CashRegisterControllerTest extends TestBase {
                 .id(1)
                 .opened(false)
                 .inventoryNumber(request.getInventoryNumber())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
                 .build();
 
         Mockito.when(cashRegisterService.create(TEST_STORE_ID, request))
@@ -249,8 +250,8 @@ public class CashRegisterControllerTest extends TestBase {
 
     @Test
     void getWorkSummary_shouldSuccess() throws Exception {
-        var from = LocalDateTime.now().minusHours(5);
-        var to = LocalDateTime.now();
+        var from = Instant.now().minus(5, ChronoUnit.HOURS);
+        var to = Instant.now();
         var expectedResponse = new CashRegistersWorkSummaryDtoResponse("0d 5h 0m 0s");
 
         Mockito.when(cashRegisterService.getWorkSummary(TEST_STORE_ID, from, to))
@@ -286,7 +287,7 @@ public class CashRegisterControllerTest extends TestBase {
                         )
                 ),
                 Arguments.of(
-                        LocalDateTime.now().toString(),
+                        Instant.now().toString(),
                         null,
                         List.of(
                                 new ErrorDtoResponse(
@@ -308,7 +309,7 @@ public class CashRegisterControllerTest extends TestBase {
                         )
                 ),
                 Arguments.of(
-                        LocalDateTime.now().toString(),
+                        Instant.now().toString(),
                         "invalidDate",
                         List.of(
                                 new ErrorDtoResponse(

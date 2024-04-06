@@ -1,7 +1,8 @@
 package ru.vglinskii.storemonitor.baseapi.integration;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.Month;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,7 +87,7 @@ public class CashRegisterIntegrationTest extends TestBase {
         cashRegister1InStore2 = cashRegisterRepository.save(testDataGenerator.createCashRegister(3, store2));
         cashRegister2InStore2 = cashRegisterRepository.save(testDataGenerator.createCashRegister(4, store2));
 
-        var baseDateTime = LocalDateTime.of(2020, Month.JANUARY, 5, 16, 0);
+        var baseDateTime = Instant.parse("2020-01-05T16:00:00Z");
 
         cashRegister1InStore1Sessions = List.of(
                 cashRegisterSessionRepository.save(testDataGenerator.createCashRegisterSession(
@@ -114,13 +115,13 @@ public class CashRegisterIntegrationTest extends TestBase {
                         4,
                         cashRegister1InStore2,
                         cashier1FromStore2,
-                        baseDateTime.minusHours(9)
+                        baseDateTime.minus(9, ChronoUnit.HOURS)
                 )),
                 cashRegisterSessionRepository.save(testDataGenerator.createCashRegisterSession(
                         5,
                         cashRegister1InStore2,
                         cashier1FromStore2,
-                        baseDateTime.minusHours(8)
+                        baseDateTime.minus(8, ChronoUnit.HOURS)
                 ))
         );
     }

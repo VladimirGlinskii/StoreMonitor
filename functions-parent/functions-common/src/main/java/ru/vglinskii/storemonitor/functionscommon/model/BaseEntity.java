@@ -1,6 +1,6 @@
 package ru.vglinskii.storemonitor.functionscommon.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -10,6 +10,6 @@ import lombok.experimental.SuperBuilder;
 @Setter
 public abstract class BaseEntity {
     protected Long id;
-    protected LocalDateTime createdAt;
-    protected LocalDateTime updatedAt;
+    protected Instant createdAt;
+    protected Instant updatedAt;
 }

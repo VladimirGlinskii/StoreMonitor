@@ -198,7 +198,7 @@ resource "yandex_serverless_container" "base-api" {
   }
   image {
     url    = "cr.yandex/${yandex_container_repository.base_api_repository.name}:development"
-    digest = "sha256:10b46ca716889ac697da4632c7b3fcf1c2a19aae9e6ce3a84d80deb1bf93621b"
+    digest = "sha256:76dc80f5004b3d7b29ad7f3a2188fa53499d2cfcffd3b2822167caeb25ec6dad"
     environment = {
       DB_URL = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api?useSSL=true"
     }

@@ -35,8 +35,8 @@ public class EmployeeDao {
                 .id(resultSet.getLong("id"))
                 .secret(resultSet.getString("secret"))
                 .storeId(resultSet.getLong("store_id"))
-                .createdAt(resultSet.getTimestamp("created_at").toLocalDateTime())
-                .updatedAt(resultSet.getTimestamp("updated_at").toLocalDateTime())
+                .createdAt(resultSet.getTimestamp("created_at").toInstant())
+                .updatedAt(resultSet.getTimestamp("updated_at").toInstant())
                 .build();
     }
 }

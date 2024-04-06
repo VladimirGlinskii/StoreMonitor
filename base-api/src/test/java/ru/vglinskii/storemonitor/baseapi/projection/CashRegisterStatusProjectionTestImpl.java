@@ -1,14 +1,14 @@
 package ru.vglinskii.storemonitor.baseapi.projection;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class CashRegisterStatusProjectionTestImpl implements CashRegisterStatusProjection {
     private long id;
     private String inventoryNumber;
-    private LocalDateTime openedAt;
-    private LocalDateTime closedAt;
+    private Instant openedAt;
+    private Instant closedAt;
 
     @Override
     public long getId() {
@@ -21,12 +21,12 @@ public class CashRegisterStatusProjectionTestImpl implements CashRegisterStatusP
     }
 
     @Override
-    public LocalDateTime getOpenedAt() {
+    public Instant getOpenedAt() {
         return openedAt;
     }
 
     @Override
-    public LocalDateTime getClosedAt() {
+    public Instant getClosedAt() {
         return closedAt;
     }
 }

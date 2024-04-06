@@ -1,7 +1,7 @@
 package ru.vglinskii.storemonitor.cashiersimulator.service;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +59,7 @@ public class WorkDaySimulatorService {
                     lastSession.getClosedAt() == null &&
                     Duration.between(
                             register.getDaySessions().getLast().getCreatedAt(),
-                            LocalDateTime.now()
+                            Instant.now()
                     ).toHours() < 1;
             if (isOpenedLessThanHour) {
                 continue;

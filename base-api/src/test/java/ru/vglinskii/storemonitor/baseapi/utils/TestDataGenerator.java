@@ -1,6 +1,6 @@
 package ru.vglinskii.storemonitor.baseapi.utils;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
 import ru.vglinskii.storemonitor.baseapi.model.Employee;
@@ -9,7 +9,7 @@ import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 
 public class TestDataGenerator {
     public Store createStore(long id) {
-        var now = LocalDateTime.now();
+        var now = Instant.now();
 
         return Store.builder()
                 .id(id)
@@ -20,7 +20,7 @@ public class TestDataGenerator {
     }
 
     public CashRegister createCashRegister(long id, Store store) {
-        var now = LocalDateTime.now();
+        var now = Instant.now();
 
         return CashRegister.builder()
                 .id(id)
@@ -35,9 +35,9 @@ public class TestDataGenerator {
             long id,
             CashRegister cashRegister,
             Employee cashier,
-            LocalDateTime closedAt
+            Instant closedAt
     ) {
-        var now = LocalDateTime.now();
+        var now = Instant.now();
 
         return CashRegisterSession.builder()
                 .id(id)
@@ -54,7 +54,7 @@ public class TestDataGenerator {
     }
 
     public Employee createEmployee(long id, Store store, EmployeeType type) {
-        var now = LocalDateTime.now();
+        var now = Instant.now();
 
         return Employee.builder()
                 .id(id)

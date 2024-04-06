@@ -55,8 +55,8 @@ public class CashierDao {
                 .isFree(resultSet.getBoolean("is_free"))
                 .workedSecondsInDay(resultSet.getInt("worked_seconds_in_day"))
                 .secret(resultSet.getString("secret"))
-                .createdAt(resultSet.getTimestamp("created_at").toLocalDateTime())
-                .updatedAt(resultSet.getTimestamp("updated_at").toLocalDateTime())
+                .createdAt(resultSet.getTimestamp("created_at").toInstant())
+                .updatedAt(resultSet.getTimestamp("updated_at").toInstant())
                 .build();
     }
 }

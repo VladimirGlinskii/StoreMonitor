@@ -1,6 +1,6 @@
 package ru.vglinskii.storemonitor.baseapi.dto.cashregister;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +14,6 @@ public class CashRegisterDtoResponse {
     private long id;
     private String inventoryNumber;
     private boolean opened;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

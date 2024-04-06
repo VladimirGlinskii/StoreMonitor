@@ -62,8 +62,8 @@ public class CashRegisterDao {
                 .id(resultSet.getLong("id"))
                 .storeId(resultSet.getLong("store_id"))
                 .daySessions(new ArrayList<>())
-                .createdAt(resultSet.getTimestamp("created_at").toLocalDateTime())
-                .updatedAt(resultSet.getTimestamp("updated_at").toLocalDateTime())
+                .createdAt(resultSet.getTimestamp("created_at").toInstant())
+                .updatedAt(resultSet.getTimestamp("updated_at").toInstant())
                 .build();
     }
 
@@ -72,10 +72,10 @@ public class CashRegisterDao {
         return (hasData)
                 ? CashRegisterSession.builder()
                 .id(resultSet.getLong("s_id"))
-                .createdAt(resultSet.getTimestamp("s_created_at").toLocalDateTime())
+                .createdAt(resultSet.getTimestamp("s_created_at").toInstant())
                 .closedAt(
                         Optional.ofNullable(resultSet.getTimestamp("s_closed_at"))
-                                .map(Timestamp::toLocalDateTime)
+                                .map(Timestamp::toInstant)
                                 .orElse(null)
                 )
                 .cashierId(resultSet.getLong("s_cashier_id"))

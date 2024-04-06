@@ -1,6 +1,6 @@
 package ru.vglinskii.storemonitor.baseapi.repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,6 +21,6 @@ public interface CashRegisterSessionRepository extends JpaRepository<CashRegiste
             AND s.createdAt < :to
             """)
     List<CashRegisterSession> findByStoreIdThatIntersectInterval(long storeId,
-                                                                 LocalDateTime from,
-                                                                 LocalDateTime to);
+                                                                 Instant from,
+                                                                 Instant to);
 }

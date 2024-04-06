@@ -1,7 +1,7 @@
 package ru.vglinskii.storemonitor.baseapi.integration;
 
-import java.time.LocalDateTime;
-import java.time.Month;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -39,7 +39,7 @@ import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CashRegisterWorkSummaryIntegrationTest extends TestBase {
     private static final String API_URL = "/api/cash-registers/work-summary";
-    private static final LocalDateTime BASE_DATE = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
+    private static final Instant BASE_DATE = Instant.parse("2020-01-01T00:00:00Z");
     private final TestDataGenerator testDataGenerator = new TestDataGenerator();
 
     @Autowired
@@ -95,48 +95,48 @@ public class CashRegisterWorkSummaryIntegrationTest extends TestBase {
         cashRegister1InStore2 = cashRegisterRepository.save(testDataGenerator.createCashRegister(3, store2));
 
         // Store 1 cash register sessions
-        Mockito.when(dateTimeProvider.getNow()).thenReturn(Optional.of(BASE_DATE.plusHours(8)));
+        Mockito.when(dateTimeProvider.getNow()).thenReturn(Optional.of(BASE_DATE.plus(8, ChronoUnit.HOURS)));
         cashRegisterSessionRepository.save(testDataGenerator.createCashRegisterSession(
                 1,
                 cashRegister1InStore1,
                 cashier1FromStore1,
-                BASE_DATE.plusHours(10)
+                BASE_DATE.plus(10, ChronoUnit.HOURS)
         ));
-        Mockito.when(dateTimeProvider.getNow()).thenReturn(Optional.of(BASE_DATE.plusHours(8)));
+        Mockito.when(dateTimeProvider.getNow()).thenReturn(Optional.of(BASE_DATE.plus(8, ChronoUnit.HOURS)));
         cashRegisterSessionRepository.save(testDataGenerator.createCashRegisterSession(
                 2L,
                 cashRegister2InStore1,
                 cashier2FromStore1,
-                BASE_DATE.plusHours(12)
+                BASE_DATE.plus(12, ChronoUnit.HOURS)
         ));
-        Mockito.when(dateTimeProvider.getNow()).thenReturn(Optional.of(BASE_DATE.plusHours(12)));
+        Mockito.when(dateTimeProvider.getNow()).thenReturn(Optional.of(BASE_DATE.plus(12, ChronoUnit.HOURS)));
         cashRegisterSessionRepository.save(testDataGenerator.createCashRegisterSession(
                 3L,
                 cashRegister1InStore1,
                 cashier1FromStore1,
                 null
         ));
-        Mockito.when(dateTimeProvider.getNow()).thenReturn(Optional.of(BASE_DATE.plusHours(16)));
+        Mockito.when(dateTimeProvider.getNow()).thenReturn(Optional.of(BASE_DATE.plus(16, ChronoUnit.HOURS)));
         cashRegisterSessionRepository.save(testDataGenerator.createCashRegisterSession(
                 4L,
                 cashRegister2InStore1,
                 cashier2FromStore1,
-                BASE_DATE.plusHours(18)
+                BASE_DATE.plus(18, ChronoUnit.HOURS)
         ));
 
         // Store 2 cash register sessions
-        Mockito.when(dateTimeProvider.getNow()).thenReturn(Optional.of(BASE_DATE.plusHours(8)));
+        Mockito.when(dateTimeProvider.getNow()).thenReturn(Optional.of(BASE_DATE.plus(8, ChronoUnit.HOURS)));
         cashRegisterSessionRepository.save(testDataGenerator.createCashRegisterSession(
                 5L,
                 cashRegister1InStore2,
                 cashier1FromStore2,
-                BASE_DATE.plusHours(10)
+                BASE_DATE.plus(10, ChronoUnit.HOURS)
         ));
         cashRegisterSessionRepository.save(testDataGenerator.createCashRegisterSession(
                 6L,
                 cashRegister1InStore2,
                 cashier1FromStore2,
-                BASE_DATE.plusHours(12)
+                BASE_DATE.plus(12, ChronoUnit.HOURS)
         ));
     }
 
@@ -152,37 +152,37 @@ public class CashRegisterWorkSummaryIntegrationTest extends TestBase {
                 // All sessions inside interval
                 Arguments.of(
                         BASE_DATE,
-                        BASE_DATE.plusDays(1),
+                        BASE_DATE.plus(1, ChronoUnit.DAYS),
                         "0d 20h 0m 0s"
                 ),
                 // All sessions started before interval but one still opened
                 Arguments.of(
-                        BASE_DATE.plusDays(1),
-                        BASE_DATE.plusDays(1).plusHours(2),
+                        BASE_DATE.plus(1, ChronoUnit.DAYS),
+                        BASE_DATE.plus(1, ChronoUnit.DAYS).plus(2, ChronoUnit.HOURS),
                         "0d 2h 0m 0s"
                 ),
                 // All sessions started after interval
                 Arguments.of(
-                        BASE_DATE.minusDays(1),
+                        BASE_DATE.minus(1, ChronoUnit.DAYS),
                         BASE_DATE,
                         "0d 0h 0m 0s"
                 ),
                 // Some sessions inside interval
                 Arguments.of(
-                        BASE_DATE.minusDays(1),
-                        BASE_DATE.plusHours(12),
+                        BASE_DATE.minus(1, ChronoUnit.DAYS),
+                        BASE_DATE.plus(12, ChronoUnit.HOURS),
                         "0d 6h 0m 0s"
                 ),
                 // 2 sessions outside interval
                 Arguments.of(
-                        BASE_DATE.plusHours(8).plusMinutes(30),
-                        BASE_DATE.plusHours(9).plusMinutes(20),
+                        BASE_DATE.plus(8, ChronoUnit.HOURS).plus(30, ChronoUnit.MINUTES),
+                        BASE_DATE.plus(9, ChronoUnit.HOURS).plus(20, ChronoUnit.MINUTES),
                         "0d 1h 40m 0s"
                 ),
                 // Some sessions started outside interval and ended inside
                 Arguments.of(
-                        BASE_DATE.plusHours(8).plusMinutes(30),
-                        BASE_DATE.plusHours(11),
+                        BASE_DATE.plus(8, ChronoUnit.HOURS).plus(30, ChronoUnit.MINUTES),
+                        BASE_DATE.plus(11, ChronoUnit.HOURS),
                         "0d 4h 0m 0s"
                 )
         );
@@ -191,8 +191,8 @@ public class CashRegisterWorkSummaryIntegrationTest extends TestBase {
     @ParameterizedTest
     @MethodSource("getValidRequestsAndExpectedResponsesForGetWorkSummary")
     void whenValid_getWorkSummary_shouldReturnCorrectResponse(
-            LocalDateTime from,
-            LocalDateTime to,
+            Instant from,
+            Instant to,
             String expectedDuration
     ) {
         Map<String, String> params = new HashMap<>();

@@ -1,7 +1,7 @@
 package ru.vglinskii.storemonitor.baseapi.service;
 
-import java.time.LocalDateTime;
-import java.time.Month;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -417,8 +417,8 @@ public class CashRegisterServiceTest extends TestBase {
     @Test
     void getStatuses_shouldReturnCorrectResponse() {
         List<CashRegisterStatusProjection> projections = List.of(
-                new CashRegisterStatusProjectionTestImpl(1, "1", LocalDateTime.now(), null),
-                new CashRegisterStatusProjectionTestImpl(1, "1", LocalDateTime.now(), LocalDateTime.now()),
+                new CashRegisterStatusProjectionTestImpl(1, "1", Instant.now(), null),
+                new CashRegisterStatusProjectionTestImpl(1, "1", Instant.now(), Instant.now()),
                 new CashRegisterStatusProjectionTestImpl(1, "1", null, null)
         );
         var expectedResponse = List.of(
@@ -436,22 +436,22 @@ public class CashRegisterServiceTest extends TestBase {
     }
 
     private static Stream<Arguments> getSessionsForAtomicDurationCalculationTest() {
-        var from = LocalDateTime.of(2020, Month.JANUARY, 5, 16, 0);
-        var to = from.plusHours(5);
+        var from = Instant.parse("2020-01-05T16:00:00Z");
+        var to = from.plus(5, ChronoUnit.HOURS);
 
         return Stream.of(
                 // Opened before interval and closed inside
                 Arguments.of(
                         CashRegisterSession.builder()
-                                .createdAt(from.minusMinutes(30))
-                                .closedAt(from.plusHours(2).plusSeconds(20))
+                                .createdAt(from.minus(30, ChronoUnit.MINUTES))
+                                .closedAt(from.plus(2, ChronoUnit.HOURS).plus(20, ChronoUnit.SECONDS))
                                 .build(),
                         "0d 2h 0m 20s"
                 ),
                 // Opened before interval and closed after
                 Arguments.of(
                         CashRegisterSession.builder()
-                                .createdAt(from.minusMinutes(30))
+                                .createdAt(from.minus(30, ChronoUnit.MINUTES))
                                 .closedAt(to.plusSeconds(30))
                                 .build(),
                         "0d 5h 0m 0s"
@@ -468,30 +468,32 @@ public class CashRegisterServiceTest extends TestBase {
                 Arguments.of(
                         CashRegisterSession.builder()
                                 .createdAt(from)
-                                .closedAt(from.plusHours(1).plusMinutes(30).plusSeconds(40))
+                                .closedAt(from.plus(1, ChronoUnit.HOURS)
+                                        .plus(30, ChronoUnit.MINUTES)
+                                        .plus(40, ChronoUnit.SECONDS))
                                 .build(),
                         "0d 1h 30m 40s"
                 ),
                 // Opened inside interval and closed after
                 Arguments.of(
                         CashRegisterSession.builder()
-                                .createdAt(from.plusHours(4).plusMinutes(30))
-                                .closedAt(from.plusHours(5).plusMinutes(30))
+                                .createdAt(from.plus(4, ChronoUnit.HOURS).plus(30, ChronoUnit.MINUTES))
+                                .closedAt(from.plus(5, ChronoUnit.HOURS).plus(30, ChronoUnit.MINUTES))
                                 .build(),
                         "0d 0h 30m 0s"
                 ),
                 // Opened inside interval and closed inside
                 Arguments.of(
                         CashRegisterSession.builder()
-                                .createdAt(from.plusHours(3).plusMinutes(30))
-                                .closedAt(from.plusHours(4).plusMinutes(10))
+                                .createdAt(from.plus(3, ChronoUnit.HOURS).plus(30, ChronoUnit.MINUTES))
+                                .closedAt(from.plus(4, ChronoUnit.HOURS).plus(10, ChronoUnit.MINUTES))
                                 .build(),
                         "0d 0h 40m 0s"
                 ),
                 // Opened before interval and not closed
                 Arguments.of(
                         CashRegisterSession.builder()
-                                .createdAt(from.minusMinutes(40))
+                                .createdAt(from.minus(40, ChronoUnit.MINUTES))
                                 .closedAt(null)
                                 .build(),
                         "0d 5h 0m 0s"
@@ -499,7 +501,7 @@ public class CashRegisterServiceTest extends TestBase {
                 // Opened inside interval and not closed
                 Arguments.of(
                         CashRegisterSession.builder()
-                                .createdAt(from.plusMinutes(40).plusSeconds(40))
+                                .createdAt(from.plus(40, ChronoUnit.MINUTES).plusSeconds(40))
                                 .closedAt(null)
                                 .build(),
                         "0d 4h 19m 20s"
@@ -513,8 +515,8 @@ public class CashRegisterServiceTest extends TestBase {
             CashRegisterSession session,
             String expectedDuration
     ) {
-        var from = LocalDateTime.of(2020, Month.JANUARY, 5, 16, 0);
-        var to = from.plusHours(5);
+        var from = Instant.parse("2020-01-05T16:00:00Z");
+        var to = from.plus(5, ChronoUnit.HOURS);
 
         List<CashRegisterSession> sessions = List.of(session);
 
@@ -530,23 +532,25 @@ public class CashRegisterServiceTest extends TestBase {
 
     @Test
     void whenMultipleSessions_getWorkSummary_shouldCorrectlyCalculateDuration() {
-        var from = LocalDateTime.of(2020, Month.JANUARY, 5, 16, 0);
-        var to = from.plusHours(5);
+        var from = Instant.parse("2020-01-05T16:00:00Z");
+        var to = from.plus(5, ChronoUnit.HOURS);
 
         List<CashRegisterSession> sessions = List.of(
                 // + 30m
                 CashRegisterSession.builder()
-                        .createdAt(from.plusHours(4).plusMinutes(30))
-                        .closedAt(from.plusHours(5).plusMinutes(30))
+                        .createdAt(from.plus(4, ChronoUnit.HOURS).plus(30, ChronoUnit.MINUTES))
+                        .closedAt(from.plus(5, ChronoUnit.HOURS).plus(30, ChronoUnit.MINUTES))
                         .build(),
                 // + 1h 30m 40s
                 CashRegisterSession.builder()
                         .createdAt(from)
-                        .closedAt(from.plusHours(1).plusMinutes(30).plusSeconds(40))
+                        .closedAt(from.plus(1, ChronoUnit.HOURS)
+                                .plus(30, ChronoUnit.MINUTES)
+                                .plusSeconds(40))
                         .build(),
                 // + 5h
                 CashRegisterSession.builder()
-                        .createdAt(from.minusMinutes(40))
+                        .createdAt(from.minus(40, ChronoUnit.MINUTES))
                         .closedAt(null)
                         .build()
         );

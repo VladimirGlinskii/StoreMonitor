@@ -1,7 +1,7 @@
 package ru.vglinskii.storemonitor.baseapi.controller;
 
 import jakarta.validation.Valid;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -78,8 +78,8 @@ public class CashRegisterController {
     @GetMapping("work-summary")
     public CashRegistersWorkSummaryDtoResponse getWorkSummary(
             @RequestHeader("X-Store-Id") long storeId,
-            @RequestParam() LocalDateTime from,
-            @RequestParam() LocalDateTime to
+            @RequestParam() Instant from,
+            @RequestParam() Instant to
     ) {
         return cashRegisterService.getWorkSummary(storeId, from, to);
     }

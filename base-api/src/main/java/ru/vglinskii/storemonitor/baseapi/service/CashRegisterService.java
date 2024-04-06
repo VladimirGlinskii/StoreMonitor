@@ -1,7 +1,7 @@
 package ru.vglinskii.storemonitor.baseapi.service;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -86,7 +86,7 @@ public class CashRegisterService {
 
         if (previousSessionOptional.isPresent()) {
             var previousSession = previousSessionOptional.get();
-            previousSession.setClosedAt(LocalDateTime.now());
+            previousSession.setClosedAt(Instant.now());
 
             cashRegisterSessionRepository.save(previousSession);
         }
@@ -119,7 +119,7 @@ public class CashRegisterService {
             throw new AppRuntimeException(ErrorCode.CASH_REGISTER_OPENED_BY_OTHER);
         }
 
-        session.setClosedAt(LocalDateTime.now());
+        session.setClosedAt(Instant.now());
         cashRegisterSessionRepository.save(session);
     }
 
@@ -136,8 +136,8 @@ public class CashRegisterService {
 
     public CashRegistersWorkSummaryDtoResponse getWorkSummary(
             long storeId,
-            LocalDateTime from,
-            LocalDateTime to
+            Instant from,
+            Instant to
     ) {
         Duration totalDuration = cashRegisterSessionRepository
                 .findByStoreIdThatIntersectInterval(storeId, from, to)
