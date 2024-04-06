@@ -3,8 +3,5 @@ mvn -f ./functions-parent/pom.xml install
 
 $functionNames = 'auth-function', 'cashier-simulator'
 foreach ($functionName in $functionNames) {
-  Compress-Archive -Path ".\functions-parent\$functionName\target\code\*" `
-    -CompressionLevel Fastest `
-    -Update `
-    -DestinationPath ".\functions-build\$functionName.zip"
+  tar.exe -a -c -f "functions-build\$functionName.zip" -C "functions-parent\$functionName\target\code" *
 }
