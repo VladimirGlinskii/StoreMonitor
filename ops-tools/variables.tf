@@ -18,3 +18,33 @@ variable "reviewers" {
     "userAccount:ajedvg94gct2uubqb9rh"
   ]
 }
+
+variable "db_user" {
+  description = "Database user"
+  type        = string
+  default     = "vglinskii"
+}
+
+variable "db_password" {
+  description = "Database password"
+  type        = string
+  default     = "adminadmin"
+}
+
+variable "environment" {
+  description = "App environment"
+  type        = string
+  default     = "development"
+}
+
+variable "base_api_image_digest" {
+  description = "Hash of Base API docker image"
+  type        = string
+  default     = "sha256:76dc80f5004b3d7b29ad7f3a2188fa53499d2cfcffd3b2822167caeb25ec6dad"
+}
+
+variable "functions_code_folder" {
+  description = "Path to folder with functions' zip archives"
+  type        = string
+  default     = "../functions-build/"
+}

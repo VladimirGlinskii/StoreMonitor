@@ -65,11 +65,11 @@ resource "yandex_lockbox_secret_version" "default_lockbox_version" {
   description = "main"
   entries {
     key        = "DB_USERNAME"
-    text_value = "vglinskii"
+    text_value = var.db_user
   }
   entries {
     key        = "DB_PASSWORD"
-    text_value = "adminadmin"
+    text_value = var.db_password
   }
 }
 
@@ -124,8 +124,8 @@ resource "yandex_mdb_mysql_database" "base-api-db" {
 
 resource "yandex_mdb_mysql_user" "base-api-db-admin" {
   cluster_id = yandex_mdb_mysql_cluster.db-cluster.id
-  name       = "vglinskii"
-  password   = "adminadmin"
+  name       = var.db_user
+  password   = var.db_password
   permission {
     database_name = yandex_mdb_mysql_database.base-api-db.name
     roles         = ["ALL"]
@@ -140,7 +140,7 @@ resource "yandex_container_registry" "container_registry" {
   name      = "${var.project_name}-registry"
   folder_id = yandex_resourcemanager_folder.folder.id
   labels = {
-    environment = "development"
+    environment = var.environment
   }
 }
 
@@ -157,7 +157,7 @@ resource "yandex_resourcemanager_folder_iam_member" "sa-serverless-containers-in
 }
 
 resource "yandex_container_repository" "base_api_repository" {
-  name = "${yandex_container_registry.container_registry.id}/store-monitor-base-api"
+  name = "${yandex_container_registry.container_registry.id}/${var.project_name}-base-api"
 }
 
 resource "yandex_container_repository_lifecycle_policy" "container_repository_lifecycle_policy" {
@@ -197,8 +197,8 @@ resource "yandex_serverless_container" "base-api" {
     environment_variable = "DB_PASSWORD"
   }
   image {
-    url    = "cr.yandex/${yandex_container_repository.base_api_repository.name}:development"
-    digest = "sha256:76dc80f5004b3d7b29ad7f3a2188fa53499d2cfcffd3b2822167caeb25ec6dad"
+    url    = "cr.yandex/${yandex_container_repository.base_api_repository.name}:${var.environment}"
+    digest = var.base_api_image_digest
     environment = {
       DB_URL = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api?useSSL=true"
     }
@@ -225,8 +225,8 @@ resource "yandex_storage_object" "auth-function-package" {
   secret_key  = yandex_storage_bucket.functions-bucket.secret_key
   bucket      = yandex_storage_bucket.functions-bucket.bucket
   key         = "auth-function.zip"
-  source      = "../functions-build/auth-function.zip"
-  source_hash = filemd5("../functions-build/auth-function.zip")
+  source      = "${var.functions_code_folder}auth-function.zip"
+  source_hash = filemd5("${var.functions_code_folder}auth-function.zip")
 }
 
 resource "yandex_function" "auth-function" {
@@ -313,8 +313,8 @@ resource "yandex_storage_object" "cashier-simulator-package" {
   secret_key  = yandex_storage_bucket.functions-bucket.secret_key
   bucket      = yandex_storage_bucket.functions-bucket.bucket
   key         = "cashier-simulator.zip"
-  source      = "../functions-build/cashier-simulator.zip"
-  source_hash = filemd5("../functions-build/cashier-simulator.zip")
+  source      = "${var.functions_code_folder}cashier-simulator.zip"
+  source_hash = filemd5("${var.functions_code_folder}cashier-simulator.zip")
 }
 
 resource "yandex_function" "cashier-simulator-function" {
