@@ -10,6 +10,6 @@ public class ApplicationProperties extends ru.vglinskii.storemonitor.functionsco
 
     public ApplicationProperties() {
         super();
-        this.baseApiUrl = System.getenv("BASE_API_URL");
+        this.baseApiUrl = getEnvValue("BASE_API_URL");
     }
 }
