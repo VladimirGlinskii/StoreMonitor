@@ -54,11 +54,10 @@ public class WorkDaySimulatorService {
         var cashRegisters = storeToCashRegisters.getOrDefault(storeId, new ArrayList<>());
 
         for (var register : cashRegisters) {
-            var lastSession = register.getLastSession();
-            var isOpenedLessThanHour = lastSession != null &&
-                    lastSession.getClosedAt() == null &&
+            var activeSession = register.getActiveSession();
+            var isOpenedLessThanHour = activeSession != null &&
                     Duration.between(
-                            register.getDaySessions().getLast().getCreatedAt(),
+                            activeSession.getCreatedAt(),
                             Instant.now()
                     ).toHours() < 1;
             if (isOpenedLessThanHour) {
@@ -69,10 +68,10 @@ public class WorkDaySimulatorService {
                     .filter(Cashier::isFree)
                     .findFirst()
                     .orElse(null);
-            var currentCashier = (lastSession == null)
+            var currentCashier = (activeSession == null)
                     ? null
                     : cashiers.stream()
-                    .filter((c) -> c.getId() == lastSession.getCashierId())
+                    .filter((c) -> c.getId() == activeSession.getCashierId())
                     .findFirst()
                     .orElse(null);
 

@@ -13,9 +13,11 @@ public class CashRegister extends BaseEntity {
     private long storeId;
     private List<CashRegisterSession> daySessions;
 
-    public CashRegisterSession getLastSession() {
-        return daySessions.isEmpty()
-                ? null
-                : daySessions.getLast();
+    public CashRegisterSession getActiveSession() {
+        if (daySessions.isEmpty() || daySessions.getLast().getClosedAt() != null) {
+            return null;
+        }
+
+        return daySessions.getLast();
     }
 }

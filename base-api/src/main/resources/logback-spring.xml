@@ -10,4 +10,5 @@
     <root level="INFO">
         <appender-ref ref="jsonConsoleAppender"/>
     </root>
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
 </configuration>

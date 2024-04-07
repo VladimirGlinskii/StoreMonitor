@@ -412,3 +412,85 @@ resource "yandex_function" "update-sensor-value-function" {
     min_level    = "INFO"
   }
 }
+
+resource "yandex_api_gateway" "devices-api-gateway" {
+  folder_id   = yandex_resourcemanager_folder.folder.id
+  name        = "${var.project_name}-devices-api-gateway"
+  description = "API Gateway for devices"
+  spec        = <<-EOT
+openapi: "3.0.0"
+info:
+  version: 0.5.0
+  title: Devices API
+paths:
+  /api/sensors/values:
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${yandex_function.update-sensor-value-function.id}
+        service_account_id: ${yandex_iam_service_account.sa.id}
+EOT
+}
+
+resource "yandex_logging_group" "sensor-simulator_log" {
+  name      = "${var.project_name}-sensor-simulator"
+  folder_id = yandex_resourcemanager_folder.folder.id
+}
+
+resource "yandex_storage_object" "sensor-simulator-package" {
+  access_key  = yandex_storage_bucket.functions-bucket.access_key
+  secret_key  = yandex_storage_bucket.functions-bucket.secret_key
+  bucket      = yandex_storage_bucket.functions-bucket.bucket
+  key         = "sensor-simulator.zip"
+  source      = "${var.functions_code_folder}sensor-simulator.zip"
+  source_hash = filemd5("${var.functions_code_folder}sensor-simulator.zip")
+}
+
+resource "yandex_function" "sensor-simulator-function" {
+  folder_id          = yandex_resourcemanager_folder.folder.id
+  name               = "${var.project_name}-sensor-simulator"
+  user_hash          = "${yandex_storage_object.sensor-simulator-package.source_hash}@1"
+  runtime            = "java21"
+  entrypoint         = "ru.vglinskii.storemonitor.sensorsimulator.Handler"
+  memory             = "256"
+  service_account_id = yandex_iam_service_account.sa.id
+  execution_timeout  = 600
+  package {
+    bucket_name = yandex_storage_object.sensor-simulator-package.bucket
+    object_name = yandex_storage_object.sensor-simulator-package.key
+  }
+  secrets {
+    id                   = yandex_lockbox_secret.default_lockbox.id
+    version_id           = yandex_lockbox_secret_version.default_lockbox_version.id
+    key                  = "DB_USERNAME"
+    environment_variable = "DB_USERNAME"
+  }
+  secrets {
+    id                   = yandex_lockbox_secret.default_lockbox.id
+    version_id           = yandex_lockbox_secret_version.default_lockbox_version.id
+    key                  = "DB_PASSWORD"
+    environment_variable = "DB_PASSWORD"
+  }
+  environment = {
+    DB_URL                                  = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api"
+    DEVICES_API_URL                         = "https://${yandex_api_gateway.devices-api-gateway.domain}/api"
+    SENSOR_VALUE_CELSIUS_MEAN               = "-3"
+    SENSOR_VALUE_CELSIUS_STANDARD_DEVIATION = "6"
+  }
+  log_options {
+    log_group_id = yandex_logging_group.sensor-simulator_log.id
+    min_level    = "INFO"
+  }
+}
+
+resource "yandex_function_trigger" "sensor-simulator_trigger" {
+  folder_id = yandex_resourcemanager_folder.folder.id
+  name      = "${var.project_name}-sensor-simulator-trigger"
+  timer {
+    cron_expression = "0/10 * ? * * *"
+  }
+  function {
+    id                 = yandex_function.sensor-simulator-function.id
+    service_account_id = yandex_iam_service_account.sa.id
+  }
+}
