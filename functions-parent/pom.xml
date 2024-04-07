@@ -12,6 +12,7 @@
         <module>functions-common</module>
         <module>auth-function</module>
         <module>cashier-simulator</module>
+        <module>update-sensor-value</module>
     </modules>
 
     <properties>

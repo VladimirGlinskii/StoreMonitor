@@ -1,4 +1,4 @@
-package ru.vglinskii.storemonitor.cashiersimulator.api;
+package ru.vglinskii.storemonitor.functionscommon.api;
 
 public class ApiInvalidArgumentsException extends RuntimeException {
     public ApiInvalidArgumentsException(Throwable cause) {
