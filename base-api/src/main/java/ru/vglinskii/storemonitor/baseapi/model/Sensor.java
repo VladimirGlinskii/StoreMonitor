@@ -6,7 +6,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,12 +14,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
 @Table(name = "sensor")
 public class Sensor extends BaseEntity {
@@ -38,6 +38,5 @@ public class Sensor extends BaseEntity {
     private String factoryCode;
 
     @OneToMany(mappedBy = "sensor", fetch = FetchType.LAZY)
-    @OrderBy("datetime DESC")
     private List<SensorValue> values = new ArrayList<>();
 }
