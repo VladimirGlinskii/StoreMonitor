@@ -564,4 +564,30 @@ public class CashRegisterServiceTest extends TestBase {
 
         Assertions.assertEquals("0d 7h 0m 40s", response.getDuration());
     }
+
+    @Test
+    void whenToDateInFuture_getWorkSummary_shouldUseNowAsToDate() {
+        var now = Instant.now();
+        try (var instantMock = Mockito.mockStatic(Instant.class, Mockito.CALLS_REAL_METHODS)) {
+            instantMock.when(Instant::now).thenReturn(now);
+            var from = now.minus(2, ChronoUnit.HOURS);
+            var to = from.plus(5, ChronoUnit.DAYS);
+
+            List<CashRegisterSession> sessions = List.of(
+                    CashRegisterSession.builder()
+                            .createdAt(from)
+                            .closedAt(null)
+                            .build()
+            );
+
+            Mockito.when(cashRegisterSessionRepository
+                            .findByStoreIdThatIntersectInterval(testStore.getId(), from, now)
+                    )
+                    .thenReturn(sessions);
+
+            var response = cashRegisterService.getWorkSummary(testStore.getId(), from, to);
+
+            Assertions.assertEquals("0d 2h 0m 0s", response.getDuration());
+        }
+    }
 }

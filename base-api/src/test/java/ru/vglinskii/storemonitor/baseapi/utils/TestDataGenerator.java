@@ -1,11 +1,15 @@
 package ru.vglinskii.storemonitor.baseapi.utils;
 
 import java.time.Instant;
+import java.util.List;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
 import ru.vglinskii.storemonitor.baseapi.model.Employee;
+import ru.vglinskii.storemonitor.baseapi.model.Sensor;
+import ru.vglinskii.storemonitor.baseapi.model.SensorValue;
 import ru.vglinskii.storemonitor.baseapi.model.Store;
 import ru.vglinskii.storemonitor.common.enums.EmployeeType;
+import ru.vglinskii.storemonitor.common.enums.SensorUnit;
 
 public class TestDataGenerator {
     public Store createStore(long id) {
@@ -65,6 +69,35 @@ public class TestDataGenerator {
                 .type(type)
                 .createdAt(now)
                 .updatedAt(now)
+                .build();
+    }
+
+    public Sensor createSensor(long id, Store store, List<SensorValue> values) {
+        var now = Instant.now();
+
+        return Sensor.builder()
+                .id(id)
+                .inventoryNumber(String.valueOf(id))
+                .factoryCode(String.valueOf(id))
+                .location(String.format("Location %d", id))
+                .store(store)
+                .values(values)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+    }
+
+    public SensorValue createSensorValue(long id) {
+        return createSensorValue(id, null, Instant.now());
+    }
+
+    public SensorValue createSensorValue(long id, Sensor sensor, Instant datetime) {
+        return SensorValue.builder()
+                .id(id)
+                .unit(SensorUnit.CELSIUS)
+                .value((float) (Math.random() * 10))
+                .datetime(datetime)
+                .sensor(sensor)
                 .build();
     }
 }

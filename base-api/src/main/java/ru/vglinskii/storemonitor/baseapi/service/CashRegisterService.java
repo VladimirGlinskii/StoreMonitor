@@ -137,8 +137,10 @@ public class CashRegisterService {
     public CashRegistersWorkSummaryDtoResponse getWorkSummary(
             long storeId,
             Instant from,
-            Instant to
+            Instant rawTo
     ) {
+        Instant to = (rawTo.isAfter(Instant.now())) ? Instant.now() : rawTo;
+
         Duration totalDuration = cashRegisterSessionRepository
                 .findByStoreIdThatIntersectInterval(storeId, from, to)
                 .stream()

@@ -288,6 +288,21 @@ paths:
             default: '-'
             type: string
           style: simple
+  /api/sensors/{proxy+}:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${yandex_serverless_container.base-api.id}
+        service_account_id: ${yandex_iam_service_account.sa.id}
+      parameters:
+        - name: proxy
+          in: path
+          explode: false
+          required: false
+          schema:
+            default: '-'
+            type: string
+          style: simple
 components:
   securitySchemes:
     apiKeyAuth:
