@@ -15,6 +15,10 @@ import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.cashiersimulator.dto.UpdateCashRegisterStateDtoRequest;
 import ru.vglinskii.storemonitor.cashiersimulator.model.CashRegister;
 import ru.vglinskii.storemonitor.cashiersimulator.model.Cashier;
+import ru.vglinskii.storemonitor.functionscommon.api.ApiClientException;
+import ru.vglinskii.storemonitor.functionscommon.api.ApiInvalidArgumentsException;
+import ru.vglinskii.storemonitor.functionscommon.api.AppHttpResponseHandler;
+import ru.vglinskii.storemonitor.functionscommon.api.HttpResponse;
 
 public class CashRegisterApi {
     private final static Logger LOGGER = LoggerFactory.getLogger(CashRegisterApi.class);

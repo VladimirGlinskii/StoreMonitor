@@ -1,4 +1,4 @@
-package ru.vglinskii.storemonitor.cashiersimulator.api;
+package ru.vglinskii.storemonitor.functionscommon.api;
 
 import java.io.IOException;
 import org.apache.http.HttpEntity;

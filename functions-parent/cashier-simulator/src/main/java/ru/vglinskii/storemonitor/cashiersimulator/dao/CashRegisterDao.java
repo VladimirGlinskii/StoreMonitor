@@ -30,7 +30,7 @@ public class CashRegisterDao {
                 FROM cash_register cr
                 LEFT JOIN cash_register_session s
                 ON s.cash_register_id = cr.id AND (s.closed_at is null OR s.created_at >= UTC_DATE())
-                ORDER BY s.created_at ASC
+                ORDER BY cr.id ASC, s.created_at ASC
                 """;
         try (var connection = databaseConnectivity.getConnection();
              var stmt = connection.prepareStatement(query);

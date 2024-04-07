@@ -1,4 +1,4 @@
-package ru.vglinskii.storemonitor.cashiersimulator.api;
+package ru.vglinskii.storemonitor.functionscommon.api;
 
 public class ApiClientException extends RuntimeException {
     public ApiClientException(Throwable cause) {

@@ -1,4 +1,4 @@
-package ru.vglinskii.storemonitor.cashiersimulator.api;
+package ru.vglinskii.storemonitor.functionscommon.api;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
