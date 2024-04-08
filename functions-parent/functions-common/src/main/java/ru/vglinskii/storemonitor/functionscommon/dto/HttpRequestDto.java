@@ -14,4 +14,5 @@ public class HttpRequestDto {
     private String body;
     private Map<String, String> headers;
     private Map<String, String> params;
+    private Map<String, Object> requestContext;
 }

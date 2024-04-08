@@ -1,27 +1,31 @@
 package ru.vglinskii.storemonitor.common.dto;
 
 public class AuthorizationContextDto {
-    private long storeId;
-    private long employeeId;
+    private Long storeId;
+    private Long employeeId;
 
-    public AuthorizationContextDto(long storeId, long employeeId) {
+    public AuthorizationContextDto() {
+        this(null, null);
+    }
+
+    public AuthorizationContextDto(Long storeId, Long employeeId) {
         this.storeId = storeId;
         this.employeeId = employeeId;
     }
 
-    public long getStoreId() {
+    public Long getStoreId() {
         return storeId;
     }
 
-    public void setStoreId(long storeId) {
+    public void setStoreId(Long storeId) {
         this.storeId = storeId;
     }
 
-    public long getEmployeeId() {
+    public Long getEmployeeId() {
         return employeeId;
     }
 
-    public void setEmployeeId(long employeeId) {
+    public void setEmployeeId(Long employeeId) {
         this.employeeId = employeeId;
     }
 }
