@@ -15,6 +15,7 @@
         <module>update-sensor-value</module>
         <module>sensor-simulator</module>
         <module>create-incident</module>
+        <module>incidents-report-function</module>
     </modules>
 
     <properties>
