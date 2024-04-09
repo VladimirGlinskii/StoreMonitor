@@ -303,6 +303,27 @@ paths:
             default: '-'
             type: string
           style: simple
+  /api/decommissioned-reports:
+    get:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${yandex_serverless_container.base-api.id}
+        service_account_id: ${yandex_iam_service_account.sa.id}
+      x-yc-apigateway-validator:
+        $ref: "#/components/x-yc-apigateway-validators/request-params-validator"
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
   /api/incidents:
     post:
       x-yc-apigateway-integration:

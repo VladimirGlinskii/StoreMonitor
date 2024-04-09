@@ -191,7 +191,7 @@ public class SensorIntegrationTest extends TestBase {
 
     @ParameterizedTest
     @MethodSource("getValidRequestsAndExpectedResponsesForGetTemperatureReport")
-    void whenValid_geTemperatureReport_shouldReturnCorrectResponse(
+    void whenValid_getTemperatureReport_shouldReturnCorrectResponse(
             Instant from,
             Instant to,
             List<List<Integer>> expectedSensorValueIndexes

@@ -26,6 +26,7 @@ public class SensorController {
     public List<SensorWithValueDtoResponse> getSensors(
             @RequestHeader("X-Store-Id") long storeId
     ) {
+        log.info("Received get sensors request for store {}", storeId);
         return sensorService.getSensorsWithCurrentValue(storeId);
     }
 
@@ -35,6 +36,7 @@ public class SensorController {
             @RequestParam() Instant from,
             @RequestParam() Instant to
     ) {
+        log.info("Received get temperature report request for store {}", storeId);
         return sensorService.getTemperatureReport(storeId, from, to);
     }
 }

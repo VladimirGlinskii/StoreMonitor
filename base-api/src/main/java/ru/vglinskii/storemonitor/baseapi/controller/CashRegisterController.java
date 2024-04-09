@@ -72,6 +72,7 @@ public class CashRegisterController {
     public List<CashRegisterStatusDtoResponse> getStatuses(
             @RequestHeader("X-Store-Id") long storeId
     ) {
+        log.info("Received get cash registers statuses request for store {}", storeId);
         return cashRegisterService.getStatuses(storeId);
     }
 
@@ -81,6 +82,7 @@ public class CashRegisterController {
             @RequestParam() Instant from,
             @RequestParam() Instant to
     ) {
+        log.info("Received get cash registers working summary request for store {}", storeId);
         return cashRegisterService.getWorkSummary(storeId, from, to);
     }
 }
