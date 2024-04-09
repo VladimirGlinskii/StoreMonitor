@@ -23,7 +23,7 @@ import lombok.Setter;
 @Builder
 @Entity
 @Table(name = "report")
-public class Report {
+public class DecommissionedReport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

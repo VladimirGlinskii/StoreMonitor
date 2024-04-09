@@ -1,9 +1,12 @@
 package ru.vglinskii.storemonitor.baseapi.utils;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
+import ru.vglinskii.storemonitor.baseapi.model.DecommissionedReport;
 import ru.vglinskii.storemonitor.baseapi.model.Employee;
 import ru.vglinskii.storemonitor.baseapi.model.Sensor;
 import ru.vglinskii.storemonitor.baseapi.model.SensorValue;
@@ -12,6 +15,13 @@ import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 import ru.vglinskii.storemonitor.common.enums.SensorUnit;
 
 public class TestDataGenerator {
+    private final DateTimeFormatter decommissionedReportDateFormatter;
+
+    public TestDataGenerator() {
+        this.decommissionedReportDateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
+                .withZone(ZoneId.systemDefault());
+    }
+
     public Store createStore(long id) {
         var now = Instant.now();
 
@@ -98,6 +108,18 @@ public class TestDataGenerator {
                 .value((float) (Math.random() * 10))
                 .datetime(datetime)
                 .sensor(sensor)
+                .build();
+    }
+
+    public DecommissionedReport createDecommissionedReport(long id, Store store, Instant datetime) {
+        var objectName = decommissionedReportDateFormatter.format(datetime) +
+                String.format("/report_%d.xlsx", id);
+
+        return DecommissionedReport.builder()
+                .id(id)
+                .store(store)
+                .link(String.format("https://some-bucket-url/%s", objectName))
+                .createdAt(datetime)
                 .build();
     }
 }
