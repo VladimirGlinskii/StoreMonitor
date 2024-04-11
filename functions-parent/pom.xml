@@ -16,6 +16,7 @@
         <module>sensor-simulator</module>
         <module>create-incident</module>
         <module>incidents-report-function</module>
+        <module>decommissioned-report-simulator</module>
     </modules>
 
     <properties>
@@ -37,6 +38,8 @@
         <slf4j-api.version>2.0.7</slf4j-api.version>
         <commons-statistics-distribution.version>1.0</commons-statistics-distribution.version>
         <commons-rng-simple.version>1.5</commons-rng-simple.version>
+        <aws-java-sdk-s3.version>1.12.699</aws-java-sdk-s3.version>
+        <apache-poi.version>5.2.0</apache-poi.version>
     </properties>
 
     <dependencyManagement>
@@ -111,6 +114,21 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-rng-simple</artifactId>
                 <version>${commons-rng-simple.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-s3</artifactId>
+                <version>${aws-java-sdk-s3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${apache-poi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${apache-poi.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>

@@ -655,3 +655,74 @@ resource "yandex_function" "incidents-report-function" {
     min_level    = "INFO"
   }
 }
+
+resource "yandex_storage_bucket" "decommissioned-reports-bucket" {
+  access_key = yandex_iam_service_account_static_access_key.sa-static-key.access_key
+  secret_key = yandex_iam_service_account_static_access_key.sa-static-key.secret_key
+  bucket     = "${var.project_name}-decommissioned-reports-bucket"
+  folder_id  = yandex_resourcemanager_folder.folder.id
+  max_size   = 10737418240
+}
+
+resource "yandex_logging_group" "decommissioned-report-simulator_log" {
+  name      = "${var.project_name}-decommissioned-report-simulator"
+  folder_id = yandex_resourcemanager_folder.folder.id
+}
+
+resource "yandex_storage_object" "decommissioned-report-simulator-package" {
+  access_key  = yandex_storage_bucket.functions-bucket.access_key
+  secret_key  = yandex_storage_bucket.functions-bucket.secret_key
+  bucket      = yandex_storage_bucket.functions-bucket.bucket
+  key         = "decommissioned-report-simulator.zip"
+  source      = "${var.functions_code_folder}decommissioned-report-simulator.zip"
+  source_hash = filemd5("${var.functions_code_folder}decommissioned-report-simulator.zip")
+}
+
+resource "yandex_function" "decommissioned-report-simulator-function" {
+  folder_id          = yandex_resourcemanager_folder.folder.id
+  name               = "${var.project_name}-decommissioned-report-simulator"
+  user_hash          = "${yandex_storage_object.decommissioned-report-simulator-package.source_hash}@1"
+  runtime            = "java21"
+  entrypoint         = "ru.vglinskii.storemonitor.decommissionedreportsimulator.Handler"
+  memory             = "256"
+  service_account_id = yandex_iam_service_account.sa.id
+  execution_timeout  = 600
+  package {
+    bucket_name = yandex_storage_object.decommissioned-report-simulator-package.bucket
+    object_name = yandex_storage_object.decommissioned-report-simulator-package.key
+  }
+  secrets {
+    id                   = yandex_lockbox_secret.default_lockbox.id
+    version_id           = yandex_lockbox_secret_version.default_lockbox_version.id
+    key                  = "DB_USERNAME"
+    environment_variable = "DB_USERNAME"
+  }
+  secrets {
+    id                   = yandex_lockbox_secret.default_lockbox.id
+    version_id           = yandex_lockbox_secret_version.default_lockbox_version.id
+    key                  = "DB_PASSWORD"
+    environment_variable = "DB_PASSWORD"
+  }
+  environment = {
+    DB_URL        = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api"
+    BUCKET_NAME   = yandex_storage_bucket.decommissioned-reports-bucket.bucket
+    SA_ACCESS_KEY = yandex_iam_service_account_static_access_key.sa-static-key.access_key
+    SA_SECRET_KEY = yandex_iam_service_account_static_access_key.sa-static-key.secret_key
+  }
+  log_options {
+    log_group_id = yandex_logging_group.decommissioned-report-simulator_log.id
+    min_level    = "INFO"
+  }
+}
+
+resource "yandex_function_trigger" "decommissioned-report-simulator_trigger" {
+  folder_id = yandex_resourcemanager_folder.folder.id
+  name      = "${var.project_name}-decommissioned-report-simulator-trigger"
+  timer {
+    cron_expression = "0 0 ? * * *"
+  }
+  function {
+    id                 = yandex_function.decommissioned-report-simulator-function.id
+    service_account_id = yandex_iam_service_account.sa.id
+  }
+}
