@@ -41,8 +41,7 @@ public class Handler implements YcFunction<HttpRequestDto, ResponseDto> {
 
         try {
             var secretKey = request.getHeaders().getOrDefault("X-Secret-Key", "");
-            var storeId = Long.parseLong(request.getHeaders().getOrDefault("X-Store-Id", ""));
-            var authorizationContext = authService.authorize(secretKey, storeId);
+            var authorizationContext = authService.authorize(secretKey);
 
             return ResponseDto.builder()
                     .isAuthorized(authorizationContext != null)

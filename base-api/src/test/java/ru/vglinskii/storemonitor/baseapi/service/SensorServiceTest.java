@@ -8,29 +8,24 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.vglinskii.storemonitor.baseapi.TestBase;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorValueDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorWithValueDtoResponse;
-import ru.vglinskii.storemonitor.baseapi.model.Store;
 import ru.vglinskii.storemonitor.baseapi.repository.SensorRepository;
-import ru.vglinskii.storemonitor.baseapi.utils.TestDataGenerator;
 
 @ExtendWith(MockitoExtension.class)
-public class SensorServiceTest extends TestBase {
-    private final TestDataGenerator testDataGenerator;
-    private final Store testStore;
+public class SensorServiceTest extends ServiceTestBase {
     @Mock
     private SensorRepository sensorRepository;
     @InjectMocks
     private SensorService sensorService;
 
     public SensorServiceTest() {
-        this.testDataGenerator = new TestDataGenerator();
-        this.testStore = testDataGenerator.createStore(1);
+        super();
     }
 
     @Test
     void getSensorsWithCurrentValue_shouldReturnCorrectResponse() {
+        authorizeAs(testDirector);
         var sensor1Value = testDataGenerator.createSensorValue(1);
         var sensor1 = testDataGenerator.createSensor(1, testStore, List.of(sensor1Value));
         var sensor2 = testDataGenerator.createSensor(2, testStore, List.of());
@@ -59,7 +54,7 @@ public class SensorServiceTest extends TestBase {
         Mockito.when(sensorRepository.findByStoreIdWithLastValue(testStore.getId()))
                 .thenReturn(List.of(sensor1, sensor2));
 
-        var response = sensorService.getSensorsWithCurrentValue(testStore.getId());
+        var response = sensorService.getSensorsWithCurrentValue();
 
         Assertions.assertEquals(expectedResponse, response);
     }

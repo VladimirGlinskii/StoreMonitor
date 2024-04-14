@@ -17,23 +17,20 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import ru.vglinskii.storemonitor.baseapi.TestBase;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorsDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterStatusDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersWorkSummaryDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
-import ru.vglinskii.storemonitor.baseapi.dto.cashregister.UpdateCashRegisterStatusDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
 import ru.vglinskii.storemonitor.baseapi.service.CashRegisterService;
 import ru.vglinskii.storemonitor.baseapi.utils.CashRegisterTestApi;
 import ru.vglinskii.storemonitor.baseapi.utils.ValidationErrorMessages;
 
 @WebMvcTest(CashRegisterController.class)
-@Import(CashRegisterTestApi.class)
-public class CashRegisterControllerTest extends TestBase {
-    private final static long TEST_STORE_ID = 1;
+@Import({CashRegisterTestApi.class, ControllerTestConfiguration.class})
+public class CashRegisterControllerTest extends ControllerTestBase {
     @MockBean
     private CashRegisterService cashRegisterService;
     @Autowired
@@ -54,11 +51,11 @@ public class CashRegisterControllerTest extends TestBase {
                 .updatedAt(Instant.now())
                 .build();
 
-        Mockito.when(cashRegisterService.create(TEST_STORE_ID, request))
+        Mockito.when(cashRegisterService.create(request))
                 .thenReturn(expectedResponse);
 
         var response = objectMapper.readValue(
-                cashRegisterTestApi.createCashRegister(TEST_STORE_ID, request)
+                cashRegisterTestApi.createCashRegister(testDirector, request)
                         .andExpect(status().is2xxSuccessful())
                         .andReturn()
                         .getResponse()
@@ -103,7 +100,7 @@ public class CashRegisterControllerTest extends TestBase {
             List<ErrorDtoResponse> expectedErrors
     ) throws Exception {
         var response = objectMapper.readValue(
-                cashRegisterTestApi.createCashRegister(TEST_STORE_ID, request)
+                cashRegisterTestApi.createCashRegister(testDirector, request)
                         .andExpect(status().isBadRequest())
                         .andReturn()
                         .getResponse()
@@ -111,7 +108,7 @@ public class CashRegisterControllerTest extends TestBase {
                 ErrorsDtoResponse.class
         );
 
-        Mockito.verify(cashRegisterService, Mockito.never()).create(Mockito.anyLong(), Mockito.any());
+        Mockito.verify(cashRegisterService, Mockito.never()).create(Mockito.any());
 
         Assertions.assertEquals(response.getErrors().size(), expectedErrors.size());
         Assertions.assertTrue(response.getErrors().containsAll(expectedErrors));
@@ -121,105 +118,36 @@ public class CashRegisterControllerTest extends TestBase {
     void delete_shouldSuccess() throws Exception {
         var cashRegisterId = 10;
 
-        cashRegisterTestApi.deleteCashRegister(TEST_STORE_ID, cashRegisterId)
+        cashRegisterTestApi.deleteCashRegister(testDirector, cashRegisterId)
                 .andExpect(status().is2xxSuccessful())
                 .andReturn();
 
         Mockito.verify(cashRegisterService, Mockito.times(1))
-                .delete(TEST_STORE_ID, cashRegisterId);
+                .delete(cashRegisterId);
     }
 
     @Test
     void whenValid_openSession_shouldSuccess() throws Exception {
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(100L)
-                .build();
         var registerId = 10L;
 
-        cashRegisterTestApi.openCashRegisterSession(TEST_STORE_ID, registerId, request)
+        cashRegisterTestApi.openCashRegisterSession(testCashier, registerId)
                 .andExpect(status().is2xxSuccessful())
                 .andReturn();
 
         Mockito.verify(cashRegisterService, Mockito.times(1))
-                .openSession(TEST_STORE_ID, registerId, request);
-    }
-
-    private static Stream<Arguments> getInvalidUpdateCashRegisterStatusRequests() {
-        return Stream.of(
-                Arguments.of(
-                        UpdateCashRegisterStatusDtoRequest.builder().build(),
-                        List.of(
-                                new ErrorDtoResponse(
-                                        ErrorCode.FIELD_NOT_VALID,
-                                        ValidationErrorMessages.REQUIRED_FIELD,
-                                        "cashierId"
-                                )
-                        )
-                )
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("getInvalidUpdateCashRegisterStatusRequests")
-    void whenInvalid_openSession_shouldReturnError(
-            UpdateCashRegisterStatusDtoRequest request,
-            List<ErrorDtoResponse> expectedErrors
-    ) throws Exception {
-        var registerId = 10L;
-
-        var response = objectMapper.readValue(
-                cashRegisterTestApi.openCashRegisterSession(TEST_STORE_ID, registerId, request)
-                        .andExpect(status().isBadRequest())
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString(),
-                ErrorsDtoResponse.class
-        );
-
-        Mockito.verify(cashRegisterService, Mockito.never())
-                .openSession(Mockito.anyLong(), Mockito.anyLong(), Mockito.any());
-
-        Assertions.assertEquals(expectedErrors.size(), response.getErrors().size());
-        Assertions.assertTrue(response.getErrors().containsAll(expectedErrors));
+                .openSession(registerId);
     }
 
     @Test
     void whenValid_closeSession_shouldSuccess() throws Exception {
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(100L)
-                .build();
         var registerId = 10L;
 
-        cashRegisterTestApi.closeCashRegisterSession(TEST_STORE_ID, registerId, request)
+        cashRegisterTestApi.closeCashRegisterSession(testCashier, registerId)
                 .andExpect(status().is2xxSuccessful())
                 .andReturn();
 
         Mockito.verify(cashRegisterService, Mockito.times(1))
-                .closeSession(TEST_STORE_ID, registerId, request);
-    }
-
-    @ParameterizedTest
-    @MethodSource("getInvalidUpdateCashRegisterStatusRequests")
-    void whenInvalid_closeSession_shouldReturnError(
-            UpdateCashRegisterStatusDtoRequest request,
-            List<ErrorDtoResponse> expectedErrors
-    ) throws Exception {
-        var registerId = 10L;
-
-        var response = objectMapper.readValue(
-                cashRegisterTestApi.closeCashRegisterSession(TEST_STORE_ID, registerId, request)
-                        .andExpect(status().isBadRequest())
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString(),
-                ErrorsDtoResponse.class
-        );
-
-        Mockito.verify(cashRegisterService, Mockito.never())
-                .closeSession(Mockito.anyLong(), Mockito.anyLong(), Mockito.any());
-
-        Assertions.assertEquals(expectedErrors.size(), response.getErrors().size());
-        Assertions.assertTrue(response.getErrors().containsAll(expectedErrors));
+                .closeSession(registerId);
     }
 
     @Test
@@ -232,11 +160,11 @@ public class CashRegisterControllerTest extends TestBase {
                         .build()
         );
 
-        Mockito.when(cashRegisterService.getStatuses(TEST_STORE_ID))
+        Mockito.when(cashRegisterService.getStatuses())
                 .thenReturn(expectedResponse);
 
         var response = objectMapper.readValue(
-                cashRegisterTestApi.getCashRegistersStatuses(TEST_STORE_ID)
+                cashRegisterTestApi.getCashRegistersStatuses(testDirector)
                         .andExpect(status().is2xxSuccessful())
                         .andReturn()
                         .getResponse()
@@ -254,12 +182,12 @@ public class CashRegisterControllerTest extends TestBase {
         var to = Instant.now();
         var expectedResponse = new CashRegistersWorkSummaryDtoResponse("0d 5h 0m 0s");
 
-        Mockito.when(cashRegisterService.getWorkSummary(TEST_STORE_ID, from, to))
+        Mockito.when(cashRegisterService.getWorkSummary(from, to))
                 .thenReturn(expectedResponse);
 
         var response = objectMapper.readValue(
                 cashRegisterTestApi.getCashRegistersWorkSummary(
-                                TEST_STORE_ID,
+                                testDirector,
                                 from.toString(),
                                 to.toString()
                         )
@@ -331,7 +259,7 @@ public class CashRegisterControllerTest extends TestBase {
     ) throws Exception {
 
         var response = objectMapper.readValue(
-                cashRegisterTestApi.getCashRegistersWorkSummary(TEST_STORE_ID, from, to)
+                cashRegisterTestApi.getCashRegistersWorkSummary(testDirector, from, to)
                         .andExpect(status().isBadRequest())
                         .andReturn()
                         .getResponse()
@@ -340,7 +268,6 @@ public class CashRegisterControllerTest extends TestBase {
         );
 
         Mockito.verify(cashRegisterService, Mockito.never()).getWorkSummary(
-                Mockito.anyLong(),
                 Mockito.any(),
                 Mockito.any()
         );

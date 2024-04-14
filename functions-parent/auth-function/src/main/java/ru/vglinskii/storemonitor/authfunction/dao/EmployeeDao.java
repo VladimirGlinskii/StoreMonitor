@@ -14,12 +14,11 @@ public class EmployeeDao {
         this.databaseConnectivity = databaseConnectivity;
     }
 
-    public Optional<Employee> findBySecretAndStoreId(String secret, long storeId) {
+    public Optional<Employee> findBySecret(String secret) {
         try (var connection = databaseConnectivity.getConnection();
-             var stmt = connection.prepareStatement("SELECT * FROM employee WHERE secret = ? AND store_id = ?")
+             var stmt = connection.prepareStatement("SELECT * FROM employee WHERE secret = ?")
         ) {
             stmt.setString(1, secret);
-            stmt.setLong(2, storeId);
             try (var resultSet = stmt.executeQuery()) {
                 return (resultSet.next())
                         ? Optional.of(mapResultSetToEmployee(resultSet))

@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -21,10 +22,9 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.data.auditing.AuditingHandler;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.util.UriComponentsBuilder;
-import ru.vglinskii.storemonitor.baseapi.TestBase;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersWorkSummaryDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
 import ru.vglinskii.storemonitor.baseapi.model.Employee;
@@ -37,8 +37,13 @@ import ru.vglinskii.storemonitor.baseapi.utils.TestDataGenerator;
 import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CashRegisterWorkSummaryIntegrationTest extends TestBase {
-    private static final String API_URL = "/api/cash-registers/work-summary";
+public class CashRegisterWorkSummaryIntegrationTest extends IntegrationTestBase {
+    private static final String API_URL_TEMPLATE = UriComponentsBuilder
+            .fromPath("/api/cash-registers/work-summary")
+            .queryParam("from", "{from}")
+            .queryParam("to", "{to}")
+            .encode()
+            .toUriString();
     private static final Instant BASE_DATE = Instant.parse("2020-01-01T00:00:00Z");
     private final TestDataGenerator testDataGenerator = new TestDataGenerator();
 
@@ -59,6 +64,7 @@ public class CashRegisterWorkSummaryIntegrationTest extends TestBase {
 
     private Store store1;
     private Store store2;
+    private Employee directorFromStore1;
     private Employee cashier1FromStore1;
     private Employee cashier2FromStore1;
     private Employee cashier1FromStore2;
@@ -80,14 +86,18 @@ public class CashRegisterWorkSummaryIntegrationTest extends TestBase {
         store1 = storeRepository.save(testDataGenerator.createStore(1));
         store2 = storeRepository.save(testDataGenerator.createStore(2));
 
+        directorFromStore1 = employeeRepository.save(
+                testDataGenerator.createEmployee(1, store1, EmployeeType.DIRECTOR)
+        );
+
         cashier1FromStore1 = employeeRepository.save(
-                testDataGenerator.createEmployee(1, store1, EmployeeType.CASHIER)
+                testDataGenerator.createEmployee(101, store1, EmployeeType.CASHIER)
         );
         cashier2FromStore1 = employeeRepository.save(
-                testDataGenerator.createEmployee(2, store1, EmployeeType.CASHIER)
+                testDataGenerator.createEmployee(102, store1, EmployeeType.CASHIER)
         );
         cashier1FromStore2 = employeeRepository.save(
-                testDataGenerator.createEmployee(3, store2, EmployeeType.CASHIER)
+                testDataGenerator.createEmployee(103, store2, EmployeeType.CASHIER)
         );
 
         cashRegister1InStore1 = cashRegisterRepository.save(testDataGenerator.createCashRegister(1, store1));
@@ -140,13 +150,6 @@ public class CashRegisterWorkSummaryIntegrationTest extends TestBase {
         ));
     }
 
-    protected HttpHeaders createHeadersForStore(Store store) {
-        var headers = new HttpHeaders();
-        headers.set("X-Store-Id", store.getId().toString());
-
-        return headers;
-    }
-
     private static Stream<Arguments> getValidRequestsAndExpectedResponsesForGetWorkSummary() {
         return Stream.of(
                 // All sessions inside interval
@@ -195,25 +198,35 @@ public class CashRegisterWorkSummaryIntegrationTest extends TestBase {
             Instant to,
             String expectedDuration
     ) {
-        Map<String, String> params = new HashMap<>();
-        params.put("from", from.toString());
-        params.put("to", to.toString());
-
-        String urlTemplate = UriComponentsBuilder.fromPath(API_URL)
-                .queryParam("from", "{from}")
-                .queryParam("to", "{to}")
-                .encode()
-                .toUriString();
-
         var response = restTemplate.exchange(
-                urlTemplate,
+                API_URL_TEMPLATE,
                 HttpMethod.GET,
-                new HttpEntity<>(createHeadersForStore(store1)),
+                new HttpEntity<>(createAuthorizationHeader(directorFromStore1)),
                 CashRegistersWorkSummaryDtoResponse.class,
-                params
+                prepareParams(from, to)
         );
 
         Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
         Assertions.assertEquals(expectedDuration, response.getBody().getDuration());
+    }
+
+    @Test
+    void whenUnauthorized_getWorkSummary_shouldReturnUnauthorizedCode() {
+        var response = restTemplate.exchange(
+                API_URL_TEMPLATE,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                CashRegistersWorkSummaryDtoResponse.class,
+                prepareParams(BASE_DATE, BASE_DATE.plus(1, ChronoUnit.DAYS))
+        );
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    private Map<String, String> prepareParams(Instant from, Instant to) {
+        Map<String, String> params = new HashMap<>();
+        params.put("from", from.toString());
+        params.put("to", to.toString());
+
+        return params;
     }
 }

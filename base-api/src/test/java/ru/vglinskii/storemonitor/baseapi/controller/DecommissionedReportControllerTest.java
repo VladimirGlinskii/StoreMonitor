@@ -24,9 +24,8 @@ import ru.vglinskii.storemonitor.baseapi.service.DecommissionedReportService;
 import ru.vglinskii.storemonitor.baseapi.utils.DecommissionedReportTestApi;
 
 @WebMvcTest(DecommissionedReportController.class)
-@Import(DecommissionedReportTestApi.class)
-public class DecommissionedReportControllerTest extends TestBase {
-    private final static long TEST_STORE_ID = 1;
+@Import({DecommissionedReportTestApi.class, ControllerTestConfiguration.class})
+public class DecommissionedReportControllerTest extends ControllerTestBase {
     @MockBean
     private DecommissionedReportService decommissionedReportService;
     @Autowired
@@ -39,10 +38,10 @@ public class DecommissionedReportControllerTest extends TestBase {
         var from = Instant.now().minus(5, ChronoUnit.HOURS);
         var to = Instant.now();
 
-        Mockito.when(decommissionedReportService.getAll(TEST_STORE_ID, from, to))
+        Mockito.when(decommissionedReportService.getAll(from, to))
                 .thenReturn(List.of());
 
-        decommissionedReportTestApi.getAll(TEST_STORE_ID, from.toString(), to.toString())
+        decommissionedReportTestApi.getAll(testDirector, from.toString(), to.toString())
                 .andExpect(status().is2xxSuccessful());
     }
 
@@ -104,7 +103,7 @@ public class DecommissionedReportControllerTest extends TestBase {
     ) throws Exception {
 
         var response = objectMapper.readValue(
-                decommissionedReportTestApi.getAll(TEST_STORE_ID, from, to)
+                decommissionedReportTestApi.getAll(testDirector, from, to)
                         .andExpect(status().isBadRequest())
                         .andReturn()
                         .getResponse()
@@ -113,7 +112,6 @@ public class DecommissionedReportControllerTest extends TestBase {
         );
 
         Mockito.verify(decommissionedReportService, Mockito.never()).getAll(
-                Mockito.anyLong(),
                 Mockito.any(),
                 Mockito.any()
         );

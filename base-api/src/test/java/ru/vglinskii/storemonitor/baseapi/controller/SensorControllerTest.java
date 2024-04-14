@@ -16,7 +16,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import ru.vglinskii.storemonitor.baseapi.TestBase;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorsDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
@@ -24,9 +23,8 @@ import ru.vglinskii.storemonitor.baseapi.service.SensorService;
 import ru.vglinskii.storemonitor.baseapi.utils.SensorTestApi;
 
 @WebMvcTest(SensorController.class)
-@Import(SensorTestApi.class)
-public class SensorControllerTest extends TestBase {
-    private final static long TEST_STORE_ID = 1;
+@Import({SensorTestApi.class, ControllerTestConfiguration.class})
+public class SensorControllerTest extends ControllerTestBase {
     @MockBean
     private SensorService sensorService;
     @Autowired
@@ -39,10 +37,10 @@ public class SensorControllerTest extends TestBase {
         var from = Instant.now().minus(5, ChronoUnit.HOURS);
         var to = Instant.now();
 
-        Mockito.when(sensorService.getTemperatureReport(TEST_STORE_ID, from, to))
+        Mockito.when(sensorService.getTemperatureReport(from, to))
                 .thenReturn(List.of());
 
-        sensorTestApi.getTemperatureReport(TEST_STORE_ID, from.toString(), to.toString())
+        sensorTestApi.getTemperatureReport(testDirector, from.toString(), to.toString())
                 .andExpect(status().is2xxSuccessful());
     }
 
@@ -104,7 +102,7 @@ public class SensorControllerTest extends TestBase {
     ) throws Exception {
 
         var response = objectMapper.readValue(
-                sensorTestApi.getTemperatureReport(TEST_STORE_ID, from, to)
+                sensorTestApi.getTemperatureReport(testDirector, from, to)
                         .andExpect(status().isBadRequest())
                         .andReturn()
                         .getResponse()
@@ -113,7 +111,6 @@ public class SensorControllerTest extends TestBase {
         );
 
         Mockito.verify(sensorService, Mockito.never()).getTemperatureReport(
-                Mockito.anyLong(),
                 Mockito.any(),
                 Mockito.any()
         );
