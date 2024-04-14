@@ -17,24 +17,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.util.UriComponentsBuilder;
-import ru.vglinskii.storemonitor.baseapi.TestBase;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorValueDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorWithValueDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorWithValuesDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
+import ru.vglinskii.storemonitor.baseapi.model.Employee;
 import ru.vglinskii.storemonitor.baseapi.model.Sensor;
 import ru.vglinskii.storemonitor.baseapi.model.SensorValue;
 import ru.vglinskii.storemonitor.baseapi.model.Store;
+import ru.vglinskii.storemonitor.baseapi.repository.EmployeeRepository;
 import ru.vglinskii.storemonitor.baseapi.repository.SensorRepository;
 import ru.vglinskii.storemonitor.baseapi.repository.SensorValueRepository;
 import ru.vglinskii.storemonitor.baseapi.repository.StoreRepository;
 import ru.vglinskii.storemonitor.baseapi.utils.TestDataGenerator;
+import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class SensorIntegrationTest extends TestBase {
+public class SensorIntegrationTest extends IntegrationTestBase {
     private final String BASE_API_URL = "/api/sensors";
     private static final Instant BASE_DATE = Instant.parse("2020-01-01T00:00:00Z");
     private final TestDataGenerator testDataGenerator = new TestDataGenerator();
@@ -44,12 +46,15 @@ public class SensorIntegrationTest extends TestBase {
     @Autowired
     private StoreRepository storeRepository;
     @Autowired
+    private EmployeeRepository employeeRepository;
+    @Autowired
     private SensorRepository sensorRepository;
     @Autowired
     private SensorValueRepository sensorValueRepository;
 
     private Store store1;
     private Store store2;
+    private Employee directorFromStore1;
 
     private Sensor sensor1InStore1;
     private List<SensorValue> sensor1InStore1Values;
@@ -66,6 +71,10 @@ public class SensorIntegrationTest extends TestBase {
 
         store1 = storeRepository.save(testDataGenerator.createStore(1));
         store2 = storeRepository.save(testDataGenerator.createStore(2));
+
+        directorFromStore1 = employeeRepository.save(
+                testDataGenerator.createEmployee(1, store1, EmployeeType.DIRECTOR)
+        );
 
         sensor1InStore1 = sensorRepository.save(testDataGenerator.createSensor(1, store1, null));
         sensor2InStore1 = sensorRepository.save(testDataGenerator.createSensor(2, store1, null));
@@ -110,13 +119,6 @@ public class SensorIntegrationTest extends TestBase {
         );
     }
 
-    protected HttpHeaders createHeadersForStore(Store store) {
-        var headers = new HttpHeaders();
-        headers.set("X-Store-Id", store.getId().toString());
-
-        return headers;
-    }
-
     @Test
     void whenStore1_getSensors_shouldReturnCorrectResponse() {
         var expectedResponse = new SensorWithValueDtoResponse[]{
@@ -149,12 +151,23 @@ public class SensorIntegrationTest extends TestBase {
         var response = restTemplate.exchange(
                 BASE_API_URL,
                 HttpMethod.GET,
-                new HttpEntity<>(createHeadersForStore(store1)),
+                new HttpEntity<>(createAuthorizationHeader(directorFromStore1)),
                 SensorWithValueDtoResponse[].class
         );
 
         Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
         Assertions.assertArrayEquals(expectedResponse, response.getBody());
+    }
+
+    @Test
+    void whenUnauthorized_getSensors_shouldReturnUnauthorizedCode() {
+        var response = restTemplate.exchange(
+                BASE_API_URL,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                SensorWithValueDtoResponse[].class
+        );
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
     private static Stream<Arguments> getValidRequestsAndExpectedResponsesForGetTemperatureReport() {
@@ -225,10 +238,6 @@ public class SensorIntegrationTest extends TestBase {
                 )
                 .toArray();
 
-        Map<String, String> params = new HashMap<>();
-        params.put("from", from.toString());
-        params.put("to", to.toString());
-
         String urlTemplate = UriComponentsBuilder
                 .fromPath(String.format("%s/temperature", BASE_API_URL))
                 .queryParam("from", "{from}")
@@ -239,13 +248,40 @@ public class SensorIntegrationTest extends TestBase {
         var response = restTemplate.exchange(
                 urlTemplate,
                 HttpMethod.GET,
-                new HttpEntity<>(createHeadersForStore(store1)),
+                new HttpEntity<>(createAuthorizationHeader(directorFromStore1)),
                 SensorWithValuesDtoResponse[].class,
-                params
+                prepareParams(from, to)
         );
         var responseBody = response.getBody();
 
         Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
         Assertions.assertArrayEquals(expectedResponse, responseBody);
+    }
+
+    @Test
+    void whenUnauthorized_getWorkSummary_shouldReturnUnauthorizedCode() {
+        String urlTemplate = UriComponentsBuilder
+                .fromPath(String.format("%s/temperature", BASE_API_URL))
+                .queryParam("from", "{from}")
+                .queryParam("to", "{to}")
+                .encode()
+                .toUriString();
+
+        var response = restTemplate.exchange(
+                urlTemplate,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                SensorWithValuesDtoResponse[].class,
+                prepareParams(BASE_DATE, BASE_DATE.plus(1, ChronoUnit.DAYS))
+        );
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    private Map<String, String> prepareParams(Instant from, Instant to) {
+        Map<String, String> params = new HashMap<>();
+        params.put("from", from.toString());
+        params.put("to", to.toString());
+
+        return params;
     }
 }

@@ -1,7 +1,7 @@
 package ru.vglinskii.storemonitor.authfunction.service;
 
-import ru.vglinskii.storemonitor.common.dto.AuthorizationContextDto;
 import ru.vglinskii.storemonitor.authfunction.dao.EmployeeDao;
+import ru.vglinskii.storemonitor.common.dto.AuthorizationContextDto;
 
 public class AuthService {
     private EmployeeDao employeeDao;
@@ -10,8 +10,8 @@ public class AuthService {
         this.employeeDao = employeeDao;
     }
 
-    public AuthorizationContextDto authorize(String secretKey, long storeId) {
-        var employeeOptional = employeeDao.findBySecretAndStoreId(secretKey, storeId);
+    public AuthorizationContextDto authorize(String secretKey) {
+        var employeeOptional = employeeDao.findBySecret(secretKey);
 
         return employeeOptional
                 .map(employee -> new AuthorizationContextDto(

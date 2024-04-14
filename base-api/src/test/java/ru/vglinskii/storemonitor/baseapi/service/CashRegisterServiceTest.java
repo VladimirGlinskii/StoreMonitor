@@ -16,28 +16,22 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.vglinskii.storemonitor.baseapi.TestBase;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterStatusDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
-import ru.vglinskii.storemonitor.baseapi.dto.cashregister.UpdateCashRegisterStatusDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.exception.AppRuntimeException;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
-import ru.vglinskii.storemonitor.baseapi.model.Store;
 import ru.vglinskii.storemonitor.baseapi.projection.CashRegisterStatusProjection;
 import ru.vglinskii.storemonitor.baseapi.projection.CashRegisterStatusProjectionTestImpl;
 import ru.vglinskii.storemonitor.baseapi.repository.CashRegisterRepository;
 import ru.vglinskii.storemonitor.baseapi.repository.CashRegisterSessionRepository;
 import ru.vglinskii.storemonitor.baseapi.repository.EmployeeRepository;
 import ru.vglinskii.storemonitor.baseapi.repository.StoreRepository;
-import ru.vglinskii.storemonitor.baseapi.utils.TestDataGenerator;
 import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 
 @ExtendWith(MockitoExtension.class)
-public class CashRegisterServiceTest extends TestBase {
-    private final TestDataGenerator testDataGenerator;
-    private final Store testStore;
+public class CashRegisterServiceTest extends ServiceTestBase {
     @Mock
     private CashRegisterRepository cashRegisterRepository;
     @Mock
@@ -50,12 +44,12 @@ public class CashRegisterServiceTest extends TestBase {
     private CashRegisterService cashRegisterService;
 
     public CashRegisterServiceTest() {
-        this.testDataGenerator = new TestDataGenerator();
-        this.testStore = testDataGenerator.createStore(1);
+        super();
     }
 
     @Test
     void whenNotExists_create_shouldSuccess() {
+        authorizeAs(testDirector);
         var expectedCashRegister = testDataGenerator.createCashRegister(1, testStore);
         var request = CreateCashRegisterDtoRequest.builder()
                 .inventoryNumber(expectedCashRegister.getInventoryNumber())
@@ -68,8 +62,8 @@ public class CashRegisterServiceTest extends TestBase {
                 .updatedAt(expectedCashRegister.getUpdatedAt())
                 .build();
 
-        Mockito.when(storeRepository.findById(testStore.getId()))
-                .thenReturn(Optional.of(testStore));
+        Mockito.when(storeRepository.getReferenceById(testStore.getId()))
+                .thenReturn(testStore);
         Mockito.when(cashRegisterRepository.findByStoreIdAndInventoryNumber(
                         testStore.getId(),
                         expectedCashRegister.getInventoryNumber()
@@ -78,20 +72,21 @@ public class CashRegisterServiceTest extends TestBase {
         Mockito.when(cashRegisterRepository.save(Mockito.any()))
                 .thenReturn(expectedCashRegister);
 
-        var response = cashRegisterService.create(testStore.getId(), request);
+        var response = cashRegisterService.create(request);
 
         Assertions.assertEquals(expectedResponse, response);
     }
 
     @Test
     void whenExists_create_shouldThrowException() {
+        authorizeAs(testDirector);
         var existingCashRegister = testDataGenerator.createCashRegister(10, testStore);
         var request = CreateCashRegisterDtoRequest.builder()
                 .inventoryNumber(existingCashRegister.getInventoryNumber())
                 .build();
 
-        Mockito.when(storeRepository.findById(testStore.getId()))
-                .thenReturn(Optional.of(testStore));
+        Mockito.when(storeRepository.getReferenceById(testStore.getId()))
+                .thenReturn(testStore);
         Mockito.when(cashRegisterRepository.findByStoreIdAndInventoryNumber(
                         testStore.getId(),
                         existingCashRegister.getInventoryNumber()
@@ -100,7 +95,7 @@ public class CashRegisterServiceTest extends TestBase {
 
         var exception = Assertions.assertThrows(
                 AppRuntimeException.class,
-                () -> cashRegisterService.create(testStore.getId(), request)
+                () -> cashRegisterService.create(request)
         );
 
         Mockito.verify(cashRegisterRepository, Mockito.never()).save(Mockito.any());
@@ -109,9 +104,10 @@ public class CashRegisterServiceTest extends TestBase {
 
     @Test
     void delete_shouldDeleteInStore() {
+        authorizeAs(testDirector);
         long targetCashRegisterId = 10;
 
-        cashRegisterService.delete(testStore.getId(), targetCashRegisterId);
+        cashRegisterService.delete(targetCashRegisterId);
 
         Mockito.verify(cashRegisterRepository, Mockito.times(1))
                 .deleteByIdAndStoreId(targetCashRegisterId, testStore.getId());
@@ -121,9 +117,7 @@ public class CashRegisterServiceTest extends TestBase {
     void whenValidAndNoSession_openSession_shouldCreateSession() {
         var cashRegister = testDataGenerator.createCashRegister(10, testStore);
         var cashier = testDataGenerator.createEmployee(100, testStore, EmployeeType.CASHIER);
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier.getId())
-                .build();
+        authorizeAs(cashier);
         var expectedSessionId = 5L;
 
         Mockito.when(cashRegisterRepository.findByIdAndStoreId(cashRegister.getId(), testStore.getId()))
@@ -143,11 +137,7 @@ public class CashRegisterServiceTest extends TestBase {
                     return savedSession;
                 });
 
-        cashRegisterService.openSession(
-                testStore.getId(),
-                cashRegister.getId(),
-                request
-        );
+        cashRegisterService.openSession(cashRegister.getId());
 
         var sessionCaptor = ArgumentCaptor.forClass(CashRegisterSession.class);
         Mockito.verify(cashRegisterSessionRepository, Mockito.times(1)).save(sessionCaptor.capture());
@@ -163,15 +153,14 @@ public class CashRegisterServiceTest extends TestBase {
     void whenValidAndSessionExists_openSession_shouldClosePreviousSessionAndOpenNew() {
         var cashRegister = testDataGenerator.createCashRegister(10, testStore);
         var cashier = testDataGenerator.createEmployee(100, testStore, EmployeeType.CASHIER);
+        authorizeAs(cashier);
+
         var expectedSessionId = 5L;
         var existingSession = testDataGenerator.createCashRegisterSession(
                 expectedSessionId - 1,
                 cashRegister,
                 cashier
         );
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier.getId())
-                .build();
 
         Mockito.when(cashRegisterRepository.findByIdAndStoreId(cashRegister.getId(), testStore.getId()))
                 .thenReturn(Optional.of(cashRegister));
@@ -186,11 +175,7 @@ public class CashRegisterServiceTest extends TestBase {
         Mockito.when(cashRegisterSessionRepository.save(Mockito.any()))
                 .thenAnswer((i) -> i.getArguments()[0]);
 
-        cashRegisterService.openSession(
-                testStore.getId(),
-                cashRegister.getId(),
-                request
-        );
+        cashRegisterService.openSession(cashRegister.getId());
 
         var sessionCaptor = ArgumentCaptor.forClass(CashRegisterSession.class);
         Mockito.verify(cashRegisterSessionRepository, Mockito.times(2)).save(sessionCaptor.capture());
@@ -206,20 +191,14 @@ public class CashRegisterServiceTest extends TestBase {
     void whenCashRegisterNotExists_openSession_shouldThrowException() {
         var cashRegister = testDataGenerator.createCashRegister(10, testStore);
         var cashier = testDataGenerator.createEmployee(100, testStore, EmployeeType.CASHIER);
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier.getId())
-                .build();
+        authorizeAs(cashier);
 
         Mockito.when(cashRegisterRepository.findByIdAndStoreId(cashRegister.getId(), testStore.getId()))
                 .thenReturn(Optional.empty());
 
         var exception = Assertions.assertThrows(
                 AppRuntimeException.class,
-                () -> cashRegisterService.openSession(
-                        testStore.getId(),
-                        cashRegister.getId(),
-                        request
-                )
+                () -> cashRegisterService.openSession(cashRegister.getId())
         );
 
         Assertions.assertEquals(ErrorCode.CASH_REGISTER_NOT_FOUND, exception.getErrorCode());
@@ -229,9 +208,7 @@ public class CashRegisterServiceTest extends TestBase {
     void whenCashierNotExists_openSession_shouldThrowException() {
         var cashRegister = testDataGenerator.createCashRegister(10, testStore);
         var cashier = testDataGenerator.createEmployee(100, testStore, EmployeeType.CASHIER);
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier.getId())
-                .build();
+        authorizeAs(cashier);
 
         Mockito.when(cashRegisterRepository.findByIdAndStoreId(cashRegister.getId(), testStore.getId()))
                 .thenReturn(Optional.of(cashRegister));
@@ -244,11 +221,7 @@ public class CashRegisterServiceTest extends TestBase {
 
         var exception = Assertions.assertThrows(
                 AppRuntimeException.class,
-                () -> cashRegisterService.openSession(
-                        testStore.getId(),
-                        cashRegister.getId(),
-                        request
-                )
+                () -> cashRegisterService.openSession(cashRegister.getId())
         );
 
         Assertions.assertEquals(ErrorCode.CASHIER_NOT_FOUND, exception.getErrorCode());
@@ -258,33 +231,22 @@ public class CashRegisterServiceTest extends TestBase {
     void whenValidAndSessionExists_closeSession_shouldCloseSession() {
         var cashRegister = testDataGenerator.createCashRegister(10, testStore);
         var cashier = testDataGenerator.createEmployee(100, testStore, EmployeeType.CASHIER);
+        authorizeAs(cashier);
+
         var existingSession = testDataGenerator.createCashRegisterSession(
                 5,
                 cashRegister,
                 cashier
         );
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier.getId())
-                .build();
 
         Mockito.when(cashRegisterRepository.findByIdAndStoreId(cashRegister.getId(), testStore.getId()))
                 .thenReturn(Optional.of(cashRegister));
-        Mockito.when(employeeRepository.findByIdAndStoreIdAndType(
-                        cashier.getId(),
-                        testStore.getId(),
-                        EmployeeType.CASHIER
-                ))
-                .thenReturn(Optional.of(cashier));
         Mockito.when(cashRegisterSessionRepository.findActiveByCashRegisterId(cashRegister.getId()))
                 .thenReturn(Optional.of(existingSession));
         Mockito.when(cashRegisterSessionRepository.save(Mockito.any()))
                 .thenAnswer((i) -> i.getArguments()[0]);
 
-        cashRegisterService.closeSession(
-                testStore.getId(),
-                cashRegister.getId(),
-                request
-        );
+        cashRegisterService.closeSession(cashRegister.getId());
 
         var sessionCaptor = ArgumentCaptor.forClass(CashRegisterSession.class);
         Mockito.verify(cashRegisterSessionRepository, Mockito.times(1)).save(sessionCaptor.capture());
@@ -298,28 +260,16 @@ public class CashRegisterServiceTest extends TestBase {
     void whenSessionNotExists_closeSession_shouldThrowException() {
         var cashRegister = testDataGenerator.createCashRegister(10, testStore);
         var cashier = testDataGenerator.createEmployee(100, testStore, EmployeeType.CASHIER);
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier.getId())
-                .build();
+        authorizeAs(cashier);
 
         Mockito.when(cashRegisterRepository.findByIdAndStoreId(cashRegister.getId(), testStore.getId()))
                 .thenReturn(Optional.of(cashRegister));
-        Mockito.when(employeeRepository.findByIdAndStoreIdAndType(
-                        cashier.getId(),
-                        testStore.getId(),
-                        EmployeeType.CASHIER
-                ))
-                .thenReturn(Optional.of(cashier));
         Mockito.when(cashRegisterSessionRepository.findActiveByCashRegisterId(cashRegister.getId()))
                 .thenReturn(Optional.empty());
 
         var exception = Assertions.assertThrows(
                 AppRuntimeException.class,
-                () -> cashRegisterService.closeSession(
-                        testStore.getId(),
-                        cashRegister.getId(),
-                        request
-                )
+                () -> cashRegisterService.closeSession(cashRegister.getId())
         );
 
         Assertions.assertEquals(ErrorCode.CASH_REGISTER_ALREADY_CLOSED, exception.getErrorCode());
@@ -329,86 +279,39 @@ public class CashRegisterServiceTest extends TestBase {
     void whenCashRegisterNotExists_closeSession_shouldThrowException() {
         var cashRegister = testDataGenerator.createCashRegister(10, testStore);
         var cashier = testDataGenerator.createEmployee(100, testStore, EmployeeType.CASHIER);
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier.getId())
-                .build();
+        authorizeAs(cashier);
 
         Mockito.when(cashRegisterRepository.findByIdAndStoreId(cashRegister.getId(), testStore.getId()))
                 .thenReturn(Optional.empty());
 
         var exception = Assertions.assertThrows(
                 AppRuntimeException.class,
-                () -> cashRegisterService.closeSession(
-                        testStore.getId(),
-                        cashRegister.getId(),
-                        request
-                )
+                () -> cashRegisterService.closeSession(cashRegister.getId())
         );
 
         Assertions.assertEquals(ErrorCode.CASH_REGISTER_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
-    void whenCashierNotExists_closeSession_shouldThrowException() {
-        var cashRegister = testDataGenerator.createCashRegister(10, testStore);
-        var cashier = testDataGenerator.createEmployee(100, testStore, EmployeeType.CASHIER);
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier.getId())
-                .build();
-
-        Mockito.when(cashRegisterRepository.findByIdAndStoreId(cashRegister.getId(), testStore.getId()))
-                .thenReturn(Optional.of(cashRegister));
-        Mockito.when(employeeRepository.findByIdAndStoreIdAndType(
-                        cashier.getId(),
-                        testStore.getId(),
-                        EmployeeType.CASHIER
-                ))
-                .thenReturn(Optional.empty());
-
-        var exception = Assertions.assertThrows(
-                AppRuntimeException.class,
-                () -> cashRegisterService.closeSession(
-                        testStore.getId(),
-                        cashRegister.getId(),
-                        request
-                )
-        );
-
-        Assertions.assertEquals(ErrorCode.CASHIER_NOT_FOUND, exception.getErrorCode());
-    }
-
-    @Test
     void whenSessionOpenedByOther_closeSession_shouldThrowException() {
         var cashRegister = testDataGenerator.createCashRegister(10, testStore);
         var cashier = testDataGenerator.createEmployee(100, testStore, EmployeeType.CASHIER);
+        authorizeAs(cashier);
         var otherCashier = testDataGenerator.createEmployee(101, testStore, EmployeeType.CASHIER);
         var existingSession = testDataGenerator.createCashRegisterSession(
                 5,
                 cashRegister,
                 otherCashier
         );
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier.getId())
-                .build();
 
         Mockito.when(cashRegisterRepository.findByIdAndStoreId(cashRegister.getId(), testStore.getId()))
                 .thenReturn(Optional.of(cashRegister));
-        Mockito.when(employeeRepository.findByIdAndStoreIdAndType(
-                        cashier.getId(),
-                        testStore.getId(),
-                        EmployeeType.CASHIER
-                ))
-                .thenReturn(Optional.of(cashier));
         Mockito.when(cashRegisterSessionRepository.findActiveByCashRegisterId(cashRegister.getId()))
                 .thenReturn(Optional.of(existingSession));
 
         var exception = Assertions.assertThrows(
                 AppRuntimeException.class,
-                () -> cashRegisterService.closeSession(
-                        testStore.getId(),
-                        cashRegister.getId(),
-                        request
-                )
+                () -> cashRegisterService.closeSession(cashRegister.getId())
         );
 
         Assertions.assertEquals(ErrorCode.CASH_REGISTER_OPENED_BY_OTHER, exception.getErrorCode());
@@ -416,6 +319,7 @@ public class CashRegisterServiceTest extends TestBase {
 
     @Test
     void getStatuses_shouldReturnCorrectResponse() {
+        authorizeAs(testDirector);
         List<CashRegisterStatusProjection> projections = List.of(
                 new CashRegisterStatusProjectionTestImpl(1, "1", Instant.now(), null),
                 new CashRegisterStatusProjectionTestImpl(1, "1", Instant.now(), Instant.now()),
@@ -430,7 +334,7 @@ public class CashRegisterServiceTest extends TestBase {
         Mockito.when(cashRegisterRepository.findWithLastSessionByStoreId(testStore.getId()))
                 .thenReturn(projections);
 
-        var response = cashRegisterService.getStatuses(testStore.getId());
+        var response = cashRegisterService.getStatuses();
 
         Assertions.assertEquals(expectedResponse, response);
     }
@@ -515,6 +419,7 @@ public class CashRegisterServiceTest extends TestBase {
             CashRegisterSession session,
             String expectedDuration
     ) {
+        authorizeAs(testDirector);
         var from = Instant.parse("2020-01-05T16:00:00Z");
         var to = from.plus(5, ChronoUnit.HOURS);
 
@@ -525,13 +430,14 @@ public class CashRegisterServiceTest extends TestBase {
                 )
                 .thenReturn(sessions);
 
-        var response = cashRegisterService.getWorkSummary(testStore.getId(), from, to);
+        var response = cashRegisterService.getWorkSummary(from, to);
 
         Assertions.assertEquals(expectedDuration, response.getDuration());
     }
 
     @Test
     void whenMultipleSessions_getWorkSummary_shouldCorrectlyCalculateDuration() {
+        authorizeAs(testDirector);
         var from = Instant.parse("2020-01-05T16:00:00Z");
         var to = from.plus(5, ChronoUnit.HOURS);
 
@@ -560,13 +466,14 @@ public class CashRegisterServiceTest extends TestBase {
                 )
                 .thenReturn(sessions);
 
-        var response = cashRegisterService.getWorkSummary(testStore.getId(), from, to);
+        var response = cashRegisterService.getWorkSummary(from, to);
 
         Assertions.assertEquals("0d 7h 0m 40s", response.getDuration());
     }
 
     @Test
     void whenToDateInFuture_getWorkSummary_shouldUseNowAsToDate() {
+        authorizeAs(testDirector);
         var now = Instant.now();
         try (var instantMock = Mockito.mockStatic(Instant.class, Mockito.CALLS_REAL_METHODS)) {
             instantMock.when(Instant::now).thenReturn(now);
@@ -585,7 +492,7 @@ public class CashRegisterServiceTest extends TestBase {
                     )
                     .thenReturn(sessions);
 
-            var response = cashRegisterService.getWorkSummary(testStore.getId(), from, to);
+            var response = cashRegisterService.getWorkSummary(from, to);
 
             Assertions.assertEquals("0d 2h 0m 0s", response.getDuration());
         }

@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
-import ru.vglinskii.storemonitor.baseapi.dto.cashregister.UpdateCashRegisterStatusDtoRequest;
+import ru.vglinskii.storemonitor.baseapi.model.Employee;
 
 public class CashRegisterTestApi extends BaseTestApi {
     @Autowired
@@ -16,62 +16,61 @@ public class CashRegisterTestApi extends BaseTestApi {
 
     private final String BASE_URL = "/api/cash-registers";
 
-    public ResultActions createCashRegister(long storeId, CreateCashRegisterDtoRequest request) throws Exception {
-        return mockMvc
-                .perform(post(BASE_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(request))
-                        .header("X-Store-Id", storeId)
-                );
-    }
-
-    public ResultActions openCashRegisterSession(
-            long storeId,
-            long id,
-            UpdateCashRegisterStatusDtoRequest request
+    public ResultActions createCashRegister(
+            Employee as,
+            CreateCashRegisterDtoRequest request
     ) throws Exception {
         return mockMvc
-                .perform(post(BASE_URL + "/" + id + "/sessions")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(request))
-                        .header("X-Store-Id", storeId)
-                );
+                .perform(authorized(
+                        post(BASE_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(request)),
+                        as
+                ));
     }
 
-    public ResultActions closeCashRegisterSession(
-            long storeId,
-            long id,
-            UpdateCashRegisterStatusDtoRequest request
-    ) throws Exception {
+    public ResultActions openCashRegisterSession(Employee as, long id) throws Exception {
         return mockMvc
-                .perform(delete(BASE_URL + "/" + id + "/sessions")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(request))
-                        .header("X-Store-Id", storeId)
-                );
+                .perform(authorized(
+                        post(BASE_URL + "/" + id + "/sessions")
+                                .contentType(MediaType.APPLICATION_JSON),
+                        as
+                ));
     }
 
-    public ResultActions deleteCashRegister(long storeId, long id) throws Exception {
-        return mockMvc.perform(delete(BASE_URL + "/" + id)
-                .header("X-Store-Id", storeId)
-        );
+    public ResultActions closeCashRegisterSession(Employee as, long id) throws Exception {
+        return mockMvc
+                .perform(authorized(
+                        delete(BASE_URL + "/" + id + "/sessions")
+                                .contentType(MediaType.APPLICATION_JSON),
+                        as
+                ));
     }
 
-    public ResultActions getCashRegistersStatuses(long storeId) throws Exception {
-        return mockMvc.perform(get(BASE_URL + "/statuses")
-                .header("X-Store-Id", storeId)
-        );
+    public ResultActions deleteCashRegister(Employee as, long id) throws Exception {
+        return mockMvc.perform(authorized(
+                delete(BASE_URL + "/" + id),
+                as
+        ));
+    }
+
+    public ResultActions getCashRegistersStatuses(Employee as) throws Exception {
+        return mockMvc.perform(authorized(
+                get(BASE_URL + "/statuses"),
+                as
+        ));
     }
 
     public ResultActions getCashRegistersWorkSummary(
-            long storeId,
+            Employee as,
             String from,
             String to
     ) throws Exception {
-        return mockMvc.perform(get(BASE_URL + "/work-summary")
-                .header("X-Store-Id", storeId)
-                .queryParam("from", from)
-                .queryParam("to", to)
-        );
+        return mockMvc.perform(authorized(
+                get(BASE_URL + "/work-summary")
+                        .queryParam("from", from)
+                        .queryParam("to", to),
+                as
+        ));
     }
 }

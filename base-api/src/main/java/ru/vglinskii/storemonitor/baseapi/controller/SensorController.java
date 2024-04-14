@@ -2,9 +2,7 @@ package ru.vglinskii.storemonitor.baseapi.controller;
 
 import java.time.Instant;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,7 +12,6 @@ import ru.vglinskii.storemonitor.baseapi.service.SensorService;
 
 @RestController
 @RequestMapping("/api/sensors")
-@Slf4j
 public class SensorController {
     private final SensorService sensorService;
 
@@ -23,20 +20,15 @@ public class SensorController {
     }
 
     @GetMapping
-    public List<SensorWithValueDtoResponse> getSensors(
-            @RequestHeader("X-Store-Id") long storeId
-    ) {
-        log.info("Received get sensors request for store {}", storeId);
-        return sensorService.getSensorsWithCurrentValue(storeId);
+    public List<SensorWithValueDtoResponse> getSensors() {
+        return sensorService.getSensorsWithCurrentValue();
     }
 
     @GetMapping("temperature")
     public List<SensorWithValuesDtoResponse> getTemperatureReport(
-            @RequestHeader("X-Store-Id") long storeId,
             @RequestParam() Instant from,
             @RequestParam() Instant to
     ) {
-        log.info("Received get temperature report request for store {}", storeId);
-        return sensorService.getTemperatureReport(storeId, from, to);
+        return sensorService.getTemperatureReport(from, to);
     }
 }

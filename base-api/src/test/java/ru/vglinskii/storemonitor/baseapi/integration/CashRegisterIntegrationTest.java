@@ -1,7 +1,6 @@
 package ru.vglinskii.storemonitor.baseapi.integration;
 
 import java.time.Instant;
-import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -11,16 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import ru.vglinskii.storemonitor.baseapi.TestBase;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorsDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterStatusDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
-import ru.vglinskii.storemonitor.baseapi.dto.cashregister.UpdateCashRegisterStatusDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
@@ -34,7 +30,7 @@ import ru.vglinskii.storemonitor.baseapi.utils.TestDataGenerator;
 import ru.vglinskii.storemonitor.common.enums.EmployeeType;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CashRegisterIntegrationTest extends TestBase {
+public class CashRegisterIntegrationTest extends IntegrationTestBase {
     private final String BASE_API_URL = "/api/cash-registers";
     private final TestDataGenerator testDataGenerator = new TestDataGenerator();
 
@@ -51,6 +47,8 @@ public class CashRegisterIntegrationTest extends TestBase {
 
     private Store store1;
     private Store store2;
+    private Employee directorFromStore1;
+    private Employee directorFromStore2;
     private Employee cashier1FromStore1;
     private Employee cashier2FromStore1;
     private Employee cashier1FromStore2;
@@ -72,14 +70,21 @@ public class CashRegisterIntegrationTest extends TestBase {
         store1 = storeRepository.save(testDataGenerator.createStore(1));
         store2 = storeRepository.save(testDataGenerator.createStore(2));
 
+        directorFromStore1 = employeeRepository.save(
+                testDataGenerator.createEmployee(1, store1, EmployeeType.DIRECTOR)
+        );
+        directorFromStore2 = employeeRepository.save(
+                testDataGenerator.createEmployee(2, store2, EmployeeType.DIRECTOR)
+        );
+
         cashier1FromStore1 = employeeRepository.save(
-                testDataGenerator.createEmployee(1, store1, EmployeeType.CASHIER)
+                testDataGenerator.createEmployee(101, store1, EmployeeType.CASHIER)
         );
         cashier2FromStore1 = employeeRepository.save(
-                testDataGenerator.createEmployee(2, store1, EmployeeType.CASHIER)
+                testDataGenerator.createEmployee(102, store1, EmployeeType.CASHIER)
         );
         cashier1FromStore2 = employeeRepository.save(
-                testDataGenerator.createEmployee(3, store2, EmployeeType.CASHIER)
+                testDataGenerator.createEmployee(103, store2, EmployeeType.CASHIER)
         );
 
         cashRegister1InStore1 = cashRegisterRepository.save(testDataGenerator.createCashRegister(1, store1));
@@ -126,11 +131,18 @@ public class CashRegisterIntegrationTest extends TestBase {
         );
     }
 
-    protected HttpHeaders createHeadersForStore(Store store) {
-        var headers = new HttpHeaders();
-        headers.set("X-Store-Id", store.getId().toString());
+    @Test
+    void whenUnauthorized_create_shouldReturnUnauthorizedCode() {
+        var request = CreateCashRegisterDtoRequest.builder()
+                .inventoryNumber("00000020")
+                .build();
 
-        return headers;
+        var response = restTemplate.postForEntity(
+                BASE_API_URL,
+                new HttpEntity<>(request),
+                null
+        );
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
     @Test
@@ -141,7 +153,7 @@ public class CashRegisterIntegrationTest extends TestBase {
 
         var response = restTemplate.postForEntity(
                 BASE_API_URL,
-                new HttpEntity<>(request, createHeadersForStore(store1)),
+                new HttpEntity<>(request, createAuthorizationHeader(directorFromStore1)),
                 CashRegisterDtoResponse.class
         );
         Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
@@ -162,7 +174,7 @@ public class CashRegisterIntegrationTest extends TestBase {
 
         var response = restTemplate.postForEntity(
                 BASE_API_URL,
-                new HttpEntity<>(request, createHeadersForStore(store1)),
+                new HttpEntity<>(request, createAuthorizationHeader(directorFromStore1)),
                 ErrorsDtoResponse.class
         );
         Assertions.assertTrue(response.getStatusCode().is4xxClientError());
@@ -181,7 +193,7 @@ public class CashRegisterIntegrationTest extends TestBase {
 
         var response = restTemplate.postForEntity(
                 BASE_API_URL,
-                new HttpEntity<>(request, createHeadersForStore(store1)),
+                new HttpEntity<>(request, createAuthorizationHeader(directorFromStore1)),
                 CashRegisterDtoResponse.class
         );
         Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
@@ -194,11 +206,22 @@ public class CashRegisterIntegrationTest extends TestBase {
     }
 
     @Test
+    void whenUnauthorized_delete_shouldReturnUnauthorizedCode() {
+        var response = restTemplate.exchange(
+                BASE_API_URL + "/" + cashRegister1InStore1.getId(),
+                HttpMethod.DELETE,
+                HttpEntity.EMPTY,
+                Void.class
+        );
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
     void whenExistInStore_delete_shouldDelete() {
         var response = restTemplate.exchange(
                 BASE_API_URL + "/" + cashRegister1InStore1.getId(),
                 HttpMethod.DELETE,
-                new HttpEntity<>(createHeadersForStore(store1)),
+                new HttpEntity<>(createAuthorizationHeader(directorFromStore1)),
                 Void.class
         );
 
@@ -211,7 +234,7 @@ public class CashRegisterIntegrationTest extends TestBase {
         var response = restTemplate.exchange(
                 BASE_API_URL + "/" + cashRegister1InStore1.getId(),
                 HttpMethod.DELETE,
-                new HttpEntity<>(createHeadersForStore(store2)),
+                new HttpEntity<>(createAuthorizationHeader(directorFromStore2)),
                 Void.class
         );
 
@@ -220,14 +243,20 @@ public class CashRegisterIntegrationTest extends TestBase {
     }
 
     @Test
-    void whenCashRegisterNotExistInStore_openSession_shouldReturnError() {
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier1FromStore1.getId())
-                .build();
-
+    void whenUnauthorized_openSession_shouldReturnUnauthorizedCode() {
         var response = restTemplate.postForEntity(
                 BASE_API_URL + "/" + cashRegister1InStore2.getId() + "/sessions",
-                new HttpEntity<>(request, createHeadersForStore(store1)),
+                HttpEntity.EMPTY,
+                Void.class
+        );
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    void whenCashRegisterNotExistInStore_openSession_shouldReturnError() {
+        var response = restTemplate.postForEntity(
+                BASE_API_URL + "/" + cashRegister1InStore2.getId() + "/sessions",
+                new HttpEntity<>(createAuthorizationHeader(cashier1FromStore1)),
                 ErrorsDtoResponse.class
         );
         var responseBody = response.getBody();
@@ -238,14 +267,10 @@ public class CashRegisterIntegrationTest extends TestBase {
     }
 
     @Test
-    void whenCashierNotExistInStore_openSession_shouldReturnError() {
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier1FromStore2.getId())
-                .build();
-
+    void whenDirector_openSession_shouldReturnError() {
         var response = restTemplate.postForEntity(
                 BASE_API_URL + "/" + cashRegister1InStore1.getId() + "/sessions",
-                new HttpEntity<>(request, createHeadersForStore(store1)),
+                new HttpEntity<>(createAuthorizationHeader(directorFromStore1)),
                 ErrorsDtoResponse.class
         );
         var responseBody = response.getBody();
@@ -257,13 +282,9 @@ public class CashRegisterIntegrationTest extends TestBase {
 
     @Test
     void whenClosed_openSession_shouldOpenNewSession() {
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier1FromStore2.getId())
-                .build();
-
         var response = restTemplate.postForEntity(
                 BASE_API_URL + "/" + cashRegister1InStore2.getId() + "/sessions",
-                new HttpEntity<>(request, createHeadersForStore(store2)),
+                new HttpEntity<>(createAuthorizationHeader(cashier1FromStore2)),
                 Void.class
         );
 
@@ -284,13 +305,9 @@ public class CashRegisterIntegrationTest extends TestBase {
                 .get();
         Assertions.assertNull(previousSession.getClosedAt());
 
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier1FromStore1.getId())
-                .build();
-
         var response = restTemplate.postForEntity(
                 BASE_API_URL + "/" + cashRegister1InStore1.getId() + "/sessions",
-                new HttpEntity<>(request, createHeadersForStore(store1)),
+                new HttpEntity<>(createAuthorizationHeader(cashier1FromStore1)),
                 Void.class
         );
         Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
@@ -308,15 +325,22 @@ public class CashRegisterIntegrationTest extends TestBase {
     }
 
     @Test
-    void whenCashRegisterNotExistInStore_closeSession_shouldReturnError() {
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier1FromStore1.getId())
-                .build();
+    void whenUnauthorized_closeSession_shouldReturnUnauthorizedCode() {
+        var response = restTemplate.exchange(
+                BASE_API_URL + "/" + cashRegister1InStore1.getId() + "/sessions",
+                HttpMethod.DELETE,
+                HttpEntity.EMPTY,
+                Void.class
+        );
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
 
+    @Test
+    void whenCashRegisterNotExistInStore_closeSession_shouldReturnError() {
         var response = restTemplate.exchange(
                 BASE_API_URL + "/" + cashRegister1InStore2.getId() + "/sessions",
                 HttpMethod.DELETE,
-                new HttpEntity<>(request, createHeadersForStore(store1)),
+                new HttpEntity<>(createAuthorizationHeader(cashier1FromStore1)),
                 ErrorsDtoResponse.class
         );
         var responseBody = response.getBody();
@@ -327,34 +351,11 @@ public class CashRegisterIntegrationTest extends TestBase {
     }
 
     @Test
-    void whenCashierNotExistInStore_closeSession_shouldReturnError() {
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier1FromStore2.getId())
-                .build();
-
-        var response = restTemplate.exchange(
-                BASE_API_URL + "/" + cashRegister1InStore1.getId() + "/sessions",
-                HttpMethod.DELETE,
-                new HttpEntity<>(request, createHeadersForStore(store1)),
-                ErrorsDtoResponse.class
-        );
-        var responseBody = response.getBody();
-
-        Assertions.assertTrue(response.getStatusCode().is4xxClientError());
-        Assertions.assertEquals(1, responseBody.getErrors().size());
-        Assertions.assertEquals(ErrorCode.CASHIER_NOT_FOUND, responseBody.getErrors().get(0).getErrorCode());
-    }
-
-    @Test
     void whenCashRegisterClosed_closeSession_shouldReturnError() {
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier1FromStore2.getId())
-                .build();
-
         var response = restTemplate.exchange(
                 BASE_API_URL + "/" + cashRegister1InStore2.getId() + "/sessions",
                 HttpMethod.DELETE,
-                new HttpEntity<>(request, createHeadersForStore(store2)),
+                new HttpEntity<>(createAuthorizationHeader(cashier1FromStore2)),
                 ErrorsDtoResponse.class
         );
         var responseBody = response.getBody();
@@ -366,14 +367,10 @@ public class CashRegisterIntegrationTest extends TestBase {
 
     @Test
     void whenCashRegisterOpenedByOther_closeSession_shouldReturnError() {
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier1FromStore1.getId())
-                .build();
-
         var response = restTemplate.exchange(
                 BASE_API_URL + "/" + cashRegister1InStore1.getId() + "/sessions",
                 HttpMethod.DELETE,
-                new HttpEntity<>(request, createHeadersForStore(store1)),
+                new HttpEntity<>(createAuthorizationHeader(cashier1FromStore1)),
                 ErrorsDtoResponse.class
         );
         var responseBody = response.getBody();
@@ -390,14 +387,10 @@ public class CashRegisterIntegrationTest extends TestBase {
                 .get();
         Assertions.assertNull(lastSession.getClosedAt());
 
-        var request = UpdateCashRegisterStatusDtoRequest.builder()
-                .cashierId(cashier2FromStore1.getId())
-                .build();
-
         var response = restTemplate.exchange(
                 BASE_API_URL + "/" + cashRegister1InStore1.getId() + "/sessions",
                 HttpMethod.DELETE,
-                new HttpEntity<>(request, createHeadersForStore(store1)),
+                new HttpEntity<>(createAuthorizationHeader(cashier2FromStore1)),
                 Void.class
         );
 
@@ -406,6 +399,17 @@ public class CashRegisterIntegrationTest extends TestBase {
         lastSession = cashRegisterSessionRepository.findById(lastSession.getId())
                 .get();
         Assertions.assertNotNull(lastSession.getClosedAt());
+    }
+
+    @Test
+    void whenUnauthorized_getStatuses_shouldReturnUnauthorizedCode() {
+        var response = restTemplate.exchange(
+                BASE_API_URL + "/statuses",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                CashRegisterStatusDtoResponse[].class
+        );
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
     @Test
@@ -426,7 +430,7 @@ public class CashRegisterIntegrationTest extends TestBase {
         var response = restTemplate.exchange(
                 BASE_API_URL + "/statuses",
                 HttpMethod.GET,
-                new HttpEntity<>(createHeadersForStore(store1)),
+                new HttpEntity<>(createAuthorizationHeader(directorFromStore1)),
                 CashRegisterStatusDtoResponse[].class
         );
 
@@ -452,7 +456,7 @@ public class CashRegisterIntegrationTest extends TestBase {
         var response = restTemplate.exchange(
                 BASE_API_URL + "/statuses",
                 HttpMethod.GET,
-                new HttpEntity<>(createHeadersForStore(store2)),
+                new HttpEntity<>(createAuthorizationHeader(directorFromStore2)),
                 CashRegisterStatusDtoResponse[].class
         );
 
