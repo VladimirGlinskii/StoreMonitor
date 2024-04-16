@@ -68,9 +68,11 @@ public class CashRegisterDao {
     }
 
     private CashRegisterSession mapResultSetToCashRegisterSession(ResultSet resultSet) throws SQLException {
-        var hasData = resultSet.getObject("s_id") != null;
-        return (hasData)
-                ? CashRegisterSession.builder()
+        if (resultSet.getObject("s_id") == null) {
+            return null;
+        }
+
+        return CashRegisterSession.builder()
                 .id(resultSet.getLong("s_id"))
                 .createdAt(resultSet.getTimestamp("s_created_at").toInstant())
                 .closedAt(
@@ -79,7 +81,6 @@ public class CashRegisterDao {
                                 .orElse(null)
                 )
                 .cashierId(resultSet.getLong("s_cashier_id"))
-                .build()
-                : null;
+                .build();
     }
 }
