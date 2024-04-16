@@ -12,6 +12,7 @@ import ru.vglinskii.storemonitor.cashiersimulator.api.CashRegisterApi;
 import ru.vglinskii.storemonitor.cashiersimulator.dao.CashRegisterDao;
 import ru.vglinskii.storemonitor.cashiersimulator.dao.CashierDao;
 import ru.vglinskii.storemonitor.cashiersimulator.model.CashRegister;
+import ru.vglinskii.storemonitor.cashiersimulator.model.CashRegisterSession;
 import ru.vglinskii.storemonitor.cashiersimulator.model.Cashier;
 
 public class WorkDaySimulatorService {
@@ -50,12 +51,12 @@ public class WorkDaySimulatorService {
             Map<Long, List<Cashier>> storeToCashiers,
             Map<Long, List<CashRegister>> storeToCashRegisters
     ) {
-        var cashiers = storeToCashiers.getOrDefault(storeId, new ArrayList<>());
-        var cashRegisters = storeToCashRegisters.getOrDefault(storeId, new ArrayList<>());
+        List<Cashier> cashiers = storeToCashiers.getOrDefault(storeId, new ArrayList<>());
+        List<CashRegister> cashRegisters = storeToCashRegisters.getOrDefault(storeId, new ArrayList<>());
 
         for (var register : cashRegisters) {
-            var activeSession = register.getActiveSession();
-            var isOpenedLessThanHour = activeSession != null &&
+            CashRegisterSession activeSession = register.getActiveSession();
+            boolean isOpenedLessThanHour = activeSession != null &&
                     Duration.between(
                             activeSession.getCreatedAt(),
                             Instant.now()
@@ -64,16 +65,18 @@ public class WorkDaySimulatorService {
                 continue;
             }
 
-            var lessWorkedFreeCashier = cashiers.stream()
+            Cashier lessWorkedFreeCashier = cashiers.stream()
                     .filter(Cashier::isFree)
                     .findFirst()
                     .orElse(null);
-            var currentCashier = (activeSession == null)
-                    ? null
-                    : cashiers.stream()
-                    .filter((c) -> c.getId() == activeSession.getCashierId())
-                    .findFirst()
-                    .orElse(null);
+            Cashier currentCashier = null;
+
+            if (activeSession != null) {
+                currentCashier = cashiers.stream()
+                        .filter((c) -> c.getId() == activeSession.getCashierId())
+                        .findFirst()
+                        .orElse(null);
+            }
 
             if (lessWorkedFreeCashier != null) {
                 this.openCashRegister(register, currentCashier, lessWorkedFreeCashier);

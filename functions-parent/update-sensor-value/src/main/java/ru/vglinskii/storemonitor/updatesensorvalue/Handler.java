@@ -2,7 +2,9 @@ package ru.vglinskii.storemonitor.updatesensorvalue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -28,7 +30,6 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
     private DatabaseConnectivity databaseConnectivity;
     private ObjectMapper objectMapper;
     private GlobalExceptionHandler globalExceptionHandler;
-    private BeanValidator beanValidator;
     private SensorService sensorService;
 
     public Handler() {
@@ -39,7 +40,6 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
         this.properties = properties;
         this.objectMapper = new AppObjectMapper();
         this.globalExceptionHandler = new GlobalExceptionHandler(objectMapper);
-        this.beanValidator = new BeanValidator();
 
         var dbProps = new Properties();
         dbProps.setProperty("ssl", "true");
@@ -48,7 +48,8 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
         this.databaseConnectivity = new DatabaseConnectivity(properties.getDbUrl(), dbProps);
 
         var sensorValueDao = new SensorValueDao(databaseConnectivity);
-        this.sensorService = new SensorService(sensorValueDao);
+        var beanValidator = new BeanValidator();
+        this.sensorService = new SensorService(sensorValueDao, beanValidator);
     }
 
     @Override
@@ -56,9 +57,14 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
         LOGGER.info("Received request {}", request);
         return globalExceptionHandler.handle(() -> {
             try {
-                var requestBody = objectMapper.readValue(request.getBody(), UpdateSensorsValuesDtoRequest.class);
-                beanValidator.validate(requestBody);
-                sensorService.updateSensorsValues(requestBody);
+                var valuesDto = Optional
+                        .ofNullable(
+                                objectMapper.readValue(request.getBody(), UpdateSensorsValuesDtoRequest.class)
+                                        .getValues()
+                        )
+                        .orElse(List.of());
+
+                sensorService.updateSensorsValues(valuesDto);
 
                 return new HttpResponseDto(HttpStatus.SC_OK, "", Map.of());
             } catch (JsonProcessingException e) {
