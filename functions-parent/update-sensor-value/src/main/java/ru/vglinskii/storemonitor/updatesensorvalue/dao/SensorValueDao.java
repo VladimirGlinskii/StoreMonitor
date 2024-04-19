@@ -15,13 +15,12 @@ public class SensorValueDao {
     }
 
     public SensorValue create(SensorValue value) {
+        var connection = databaseConnectivity.getConnection();
         var query = """
                     INSERT INTO sensor_value (datetime,unit,value,sensor_id)
                     VALUES (?,?,?,?)
                 """;
-        try (var connection = databaseConnectivity.getConnection();
-             var stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)
-        ) {
+        try (var stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setTimestamp(1, Timestamp.from(value.getDatetime()));
             stmt.setString(2, value.getUnit().name());
             stmt.setFloat(3, value.getValue());

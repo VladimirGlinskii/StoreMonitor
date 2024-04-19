@@ -16,8 +16,8 @@ public class SensorDao {
     }
 
     public List<Sensor> findAll() {
-        try (var connection = databaseConnectivity.getConnection();
-             var stmt = connection.prepareStatement("SELECT * FROM sensor");
+        var connection = databaseConnectivity.getConnection();
+        try (var stmt = connection.prepareStatement("SELECT * FROM sensor");
              var resultSet = stmt.executeQuery()
         ) {
             var sensors = new ArrayList<Sensor>();

@@ -20,6 +20,7 @@ public class CashRegisterDao {
     }
 
     public List<CashRegister> findAllWithDaySessions() {
+        var connection = databaseConnectivity.getConnection();
         var query = """
                 SELECT
                     cr.*,
@@ -32,8 +33,7 @@ public class CashRegisterDao {
                 ON s.cash_register_id = cr.id AND (s.closed_at is null OR s.created_at >= UTC_DATE())
                 ORDER BY cr.id ASC, s.created_at ASC
                 """;
-        try (var connection = databaseConnectivity.getConnection();
-             var stmt = connection.prepareStatement(query);
+        try (var stmt = connection.prepareStatement(query);
              var resultSet = stmt.executeQuery()
         ) {
             var registers = new ArrayList<CashRegister>();

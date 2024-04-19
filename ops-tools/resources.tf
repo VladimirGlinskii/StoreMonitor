@@ -200,7 +200,7 @@ resource "yandex_serverless_container" "base-api" {
     url    = "cr.yandex/${yandex_container_repository.base_api_repository.name}:${var.environment}"
     digest = var.base_api_image_digest
     environment = {
-      DB_URL = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api?useSSL=true"
+      DB_URL = local.dbUrl
     }
   }
   log_options {
@@ -255,7 +255,7 @@ resource "yandex_function" "auth-function" {
     environment_variable = "DB_PASSWORD"
   }
   environment = {
-    DB_URL = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api"
+    DB_URL = local.dbUrl
   }
   log_options {
     log_group_id = yandex_logging_group.auth-function_log.id
@@ -409,8 +409,8 @@ resource "yandex_function" "cashier-simulator-function" {
     environment_variable = "DB_PASSWORD"
   }
   environment = {
-    DB_URL       = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api"
-    BASE_API_URL = "https://${yandex_api_gateway.pa-api-gateway.domain}/api"
+    DB_URL       = local.dbUrl
+    BASE_API_URL = local.baseApiUrl
   }
   log_options {
     log_group_id = yandex_logging_group.cashier-simulator_log.id
@@ -470,7 +470,7 @@ resource "yandex_function" "update-sensor-value-function" {
     environment_variable = "DB_PASSWORD"
   }
   environment = {
-    DB_URL = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api"
+    DB_URL = local.dbUrl
   }
   log_options {
     log_group_id = yandex_logging_group.update-sensor-value-function_log.id
@@ -537,8 +537,8 @@ resource "yandex_function" "sensor-simulator-function" {
     environment_variable = "DB_PASSWORD"
   }
   environment = {
-    DB_URL                                  = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api"
-    DEVICES_API_URL                         = "https://${yandex_api_gateway.devices-api-gateway.domain}/api"
+    DB_URL                                  = local.dbUrl
+    DEVICES_API_URL                         = local.devicesApiUrl
     SENSOR_VALUE_CELSIUS_MEAN               = "-3"
     SENSOR_VALUE_CELSIUS_STANDARD_DEVIATION = "6"
   }
@@ -600,7 +600,7 @@ resource "yandex_function" "create-incident-function" {
     environment_variable = "DB_PASSWORD"
   }
   environment = {
-    DB_URL = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api"
+    DB_URL = local.dbUrl
   }
   log_options {
     log_group_id = yandex_logging_group.create-incident-function_log.id
@@ -648,7 +648,7 @@ resource "yandex_function" "incidents-report-function" {
     environment_variable = "DB_PASSWORD"
   }
   environment = {
-    DB_URL = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api"
+    DB_URL = local.dbUrl
   }
   log_options {
     log_group_id = yandex_logging_group.incidents-report-function_log.id
@@ -704,7 +704,7 @@ resource "yandex_function" "decommissioned-report-simulator-function" {
     environment_variable = "DB_PASSWORD"
   }
   environment = {
-    DB_URL        = "jdbc:mysql://${yandex_mdb_mysql_cluster.db-cluster.host[0].fqdn}:3306/base-api"
+    DB_URL        = local.dbUrl
     BUCKET_NAME   = yandex_storage_bucket.decommissioned-reports-bucket.bucket
     SA_ACCESS_KEY = yandex_iam_service_account_static_access_key.sa-static-key.access_key
     SA_SECRET_KEY = yandex_iam_service_account_static_access_key.sa-static-key.secret_key
