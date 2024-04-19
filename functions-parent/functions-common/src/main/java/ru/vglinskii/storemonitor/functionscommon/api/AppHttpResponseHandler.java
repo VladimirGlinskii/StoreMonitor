@@ -1,17 +1,18 @@
 package ru.vglinskii.storemonitor.functionscommon.api;
 
 import java.io.IOException;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
-public class AppHttpResponseHandler implements ResponseHandler<HttpResponse> {
+public class AppHttpResponseHandler implements HttpClientResponseHandler<HttpResponse> {
     @Override
-    public HttpResponse handleResponse(org.apache.http.HttpResponse httpResponse) throws IOException {
+    public HttpResponse handleResponse(ClassicHttpResponse classicHttpResponse) throws HttpException, IOException {
         var response = new HttpResponse();
-        response.setStatus(httpResponse.getStatusLine().getStatusCode());
+        response.setStatus(classicHttpResponse.getCode());
 
-        HttpEntity entity = httpResponse.getEntity();
+        var entity = classicHttpResponse.getEntity();
         if (entity != null) {
             response.setBody(EntityUtils.toString(entity));
         }
