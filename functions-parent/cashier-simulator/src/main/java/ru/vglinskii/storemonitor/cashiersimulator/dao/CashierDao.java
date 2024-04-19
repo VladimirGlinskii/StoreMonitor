@@ -16,6 +16,7 @@ public class CashierDao {
     }
 
     public List<Cashier> findAllOrderedByActivity() {
+        var connection = databaseConnectivity.getConnection();
         var query = """
                     SELECT
                         c.*,
@@ -34,9 +35,9 @@ public class CashierDao {
                     WHERE type = "CASHIER"
                     ORDER BY worked_seconds_in_day ASC
                 """;
-        try (var connection = databaseConnectivity.getConnection();
-             var stmt = connection.prepareStatement(query);
-             var resultSet = stmt.executeQuery()) {
+        try (var stmt = connection.prepareStatement(query);
+             var resultSet = stmt.executeQuery()
+        ) {
             var cashiers = new ArrayList<Cashier>();
             while (resultSet.next()) {
                 cashiers.add(mapResultSetToCashier(resultSet));

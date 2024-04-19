@@ -15,13 +15,12 @@ public class IncidentDao {
     }
 
     public Incident create(Incident incident) {
+        var connection = databaseConnectivity.getConnection();
         var query = """
                     INSERT INTO incident (called_ambulance,called_fire_department,called_gas_service,called_police,datetime,description,event_type,store_id)
                     VALUES (?,?,?,?,?,?,?,?)
                 """;
-        try (var connection = databaseConnectivity.getConnection();
-             var stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)
-        ) {
+        try (var stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setBoolean(1, incident.isCalledAmbulance());
             stmt.setBoolean(2, incident.isCalledFireDepartment());
             stmt.setBoolean(3, incident.isCalledGasService());

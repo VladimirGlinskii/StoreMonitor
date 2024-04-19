@@ -18,13 +18,12 @@ public class IncidentDao {
     }
 
     public List<Incident> findByStoreIdInInterval(long storeId, Instant from, Instant to) {
+        var connection = databaseConnectivity.getConnection();
         var query = """
                     SELECT * FROM incident
                     WHERE store_id = ? AND datetime >= ? AND datetime <= ?
                 """;
-        try (var connection = databaseConnectivity.getConnection();
-             var stmt = connection.prepareStatement(query)
-        ) {
+        try (var stmt = connection.prepareStatement(query)) {
             stmt.setLong(1, storeId);
             stmt.setTimestamp(2, Timestamp.from(from));
             stmt.setTimestamp(3, Timestamp.from(to));

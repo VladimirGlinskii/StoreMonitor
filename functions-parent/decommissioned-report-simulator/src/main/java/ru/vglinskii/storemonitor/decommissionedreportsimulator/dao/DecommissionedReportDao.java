@@ -15,13 +15,12 @@ public class DecommissionedReportDao {
     }
 
     public DecommissionedReport create(DecommissionedReport report) {
+        var connection = databaseConnectivity.getConnection();
         var query = """
                     INSERT INTO report (created_at,link,store_id)
                     VALUES (?,?,?)
                 """;
-        try (var connection = databaseConnectivity.getConnection();
-             var stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)
-        ) {
+        try (var stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setTimestamp(1, Timestamp.from(report.getCreatedAt()));
             stmt.setString(2, report.getLink());
             stmt.setLong(3, report.getStoreId());

@@ -3,10 +3,12 @@ package ru.vglinskii.storemonitor.authfunction.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import ru.vglinskii.storemonitor.authfunction.model.Employee;
 import ru.vglinskii.storemonitor.functionscommon.dao.DataAccessException;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
 
+@Slf4j
 public class EmployeeDao {
     private DatabaseConnectivity databaseConnectivity;
 
@@ -15,9 +17,8 @@ public class EmployeeDao {
     }
 
     public Optional<Employee> findBySecret(String secret) {
-        try (var connection = databaseConnectivity.getConnection();
-             var stmt = connection.prepareStatement("SELECT * FROM employee WHERE secret = ?")
-        ) {
+        var connection = databaseConnectivity.getConnection();
+        try (var stmt = connection.prepareStatement("SELECT * FROM employee WHERE secret = ?")) {
             stmt.setString(1, secret);
             try (var resultSet = stmt.executeQuery()) {
                 return (resultSet.next())

@@ -16,8 +16,8 @@ public class StoreDao {
     }
 
     public List<Store> findAll() {
-        try (var connection = databaseConnectivity.getConnection();
-             var stmt = connection.prepareStatement("SELECT * FROM store");
+        var connection = databaseConnectivity.getConnection();
+        try (var stmt = connection.prepareStatement("SELECT * FROM store");
              var resultSet = stmt.executeQuery()
         ) {
             var stores = new ArrayList<Store>();
