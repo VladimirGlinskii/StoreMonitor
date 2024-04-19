@@ -10,7 +10,6 @@ import ru.vglinskii.storemonitor.cashiersimulator.dao.CashierDao;
 import ru.vglinskii.storemonitor.cashiersimulator.service.WorkDaySimulatorService;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
 import ru.vglinskii.storemonitor.functionscommon.dto.TriggerRequestDto;
-import ru.vglinskii.storemonitor.functionscommon.utils.serialization.AppObjectMapper;
 import yandex.cloud.sdk.functions.Context;
 import yandex.cloud.sdk.functions.YcFunction;
 
@@ -35,11 +34,7 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
 
         var cashierDao = new CashierDao(databaseConnectivity);
         var cashRegisterDao = new CashRegisterDao(databaseConnectivity);
-        var objectMapper = new AppObjectMapper();
-        var cashRegisterApi = new CashRegisterApi(
-                objectMapper,
-                properties.getBaseApiUrl()
-        );
+        var cashRegisterApi = new CashRegisterApi(properties.getBaseApiUrl());
         this.workDaySimulatorService = new WorkDaySimulatorService(cashierDao, cashRegisterDao, cashRegisterApi);
     }
 

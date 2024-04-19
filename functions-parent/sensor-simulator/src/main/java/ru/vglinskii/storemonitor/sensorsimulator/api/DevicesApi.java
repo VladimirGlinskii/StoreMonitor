@@ -3,13 +3,12 @@ package ru.vglinskii.storemonitor.sensorsimulator.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import org.apache.http.HttpHeaders;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.functionscommon.api.ApiClientException;
@@ -23,27 +22,26 @@ public class DevicesApi {
     private ObjectMapper objectMapper;
     private String apiUrl;
     private AppHttpResponseHandler responseHandler;
+    private CloseableHttpClient httpClient;
 
     public DevicesApi(ObjectMapper objectMapper, String apiUrl) {
         this.objectMapper = objectMapper;
         this.apiUrl = apiUrl;
         this.responseHandler = new AppHttpResponseHandler();
+        this.httpClient = HttpClients.createDefault();
     }
 
     public HttpResponse updateSensorsValues(UpdateSensorsValuesDtoRequest requestDto) {
-        HttpUriRequest request;
+        var request = new HttpPost(String.format("%s/sensors/values", apiUrl));
         try {
-            request = RequestBuilder.post()
-                    .setUri(String.format("%s/sensors/values", apiUrl))
-                    .setEntity(new StringEntity(objectMapper.writeValueAsString(requestDto)))
-                    .setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())
-                    .build();
-        } catch (JsonProcessingException | UnsupportedEncodingException e) {
+            request.setEntity(new StringEntity(objectMapper.writeValueAsString(requestDto)));
+            request.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+        } catch (JsonProcessingException e) {
             LOGGER.error("Failed to create update sensors values request", e);
             throw new ApiInvalidArgumentsException(e);
         }
 
-        try (var httpClient = HttpClients.createDefault()) {
+        try {
             return httpClient.execute(request, responseHandler);
         } catch (IOException e) {
             LOGGER.error("Failed to execute update sensors values request", e);

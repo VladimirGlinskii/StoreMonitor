@@ -2,7 +2,7 @@ package ru.vglinskii.storemonitor.functionscommon.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
