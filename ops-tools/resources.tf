@@ -704,10 +704,11 @@ resource "yandex_function" "decommissioned-report-simulator-function" {
     environment_variable = "DB_PASSWORD"
   }
   environment = {
-    DB_URL        = local.dbUrl
-    BUCKET_NAME   = yandex_storage_bucket.decommissioned-reports-bucket.bucket
-    SA_ACCESS_KEY = yandex_iam_service_account_static_access_key.sa-static-key.access_key
-    SA_SECRET_KEY = yandex_iam_service_account_static_access_key.sa-static-key.secret_key
+    DB_URL                                 = local.dbUrl
+    BUCKET_NAME                            = yandex_storage_bucket.decommissioned-reports-bucket.bucket
+    SA_ACCESS_KEY                          = yandex_iam_service_account_static_access_key.sa-static-key.access_key
+    SA_SECRET_KEY                          = yandex_iam_service_account_static_access_key.sa-static-key.secret_key
+    MAX_COMMODITIES_FOR_DECOMMISSION_COUNT = "20"
   }
   log_options {
     log_group_id = yandex_logging_group.decommissioned-report-simulator_log.id

@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.authfunction.dao.EmployeeDao;
 import ru.vglinskii.storemonitor.authfunction.dto.ResponseDto;
 import ru.vglinskii.storemonitor.authfunction.service.AuthService;
-import ru.vglinskii.storemonitor.functionscommon.config.ApplicationProperties;
+import ru.vglinskii.storemonitor.functionscommon.config.CommonApplicationProperties;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
 import ru.vglinskii.storemonitor.functionscommon.dto.HttpRequestDto;
 import yandex.cloud.sdk.functions.Context;
@@ -14,15 +14,15 @@ import yandex.cloud.sdk.functions.YcFunction;
 
 public class Handler implements YcFunction<HttpRequestDto, ResponseDto> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Handler.class);
-    private ApplicationProperties properties;
+    private CommonApplicationProperties properties;
     private DatabaseConnectivity databaseConnectivity;
     private AuthService authService;
 
     public Handler() {
-        this(new ApplicationProperties());
+        this(new CommonApplicationProperties());
     }
 
-    public Handler(ApplicationProperties properties) {
+    public Handler(CommonApplicationProperties properties) {
         this.properties = properties;
         var dbProps = new Properties();
         dbProps.setProperty("ssl", "true");

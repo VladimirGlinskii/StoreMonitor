@@ -6,12 +6,12 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ApplicationProperties {
+public class CommonApplicationProperties {
     private final String dbUrl;
     private final String dbPassword;
     private final String dbUser;
 
-    public ApplicationProperties() {
+    public CommonApplicationProperties() {
         this.dbUrl = getEnvValue("DB_URL");
         this.dbPassword = getEnvValue("DB_PASSWORD");
         this.dbUser = getEnvValue("DB_USERNAME");

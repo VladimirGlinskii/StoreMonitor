@@ -44,7 +44,7 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
                 ),
                 properties.getBucketName()
         );
-        var commodityService = new CommodityService();
+        var commodityService = new CommodityService(properties.getMaxCommoditiesForDecommissionCount());
         var decommissionedReportGeneratorService = new DecommissionedReportGeneratorService();
         this.decommissionedReportService = new DecommissionedReportService(
                 storeDao,

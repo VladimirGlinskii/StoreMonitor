@@ -35,6 +35,7 @@ public class WorkDaySimulatorService {
         var storeToCashiers = cashierDao.findAllOrderedByActivity()
                 .stream()
                 .collect(Collectors.groupingBy(Cashier::getStoreId));
+
         var storeToCashRegisters = cashRegisterDao.findAllWithDaySessions()
                 .stream()
                 .collect(Collectors.groupingBy(CashRegister::getStoreId));

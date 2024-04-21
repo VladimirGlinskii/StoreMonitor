@@ -8,10 +8,12 @@ import ru.vglinskii.storemonitor.decommissionedreportsimulator.model.Commodity;
 
 @AllArgsConstructor
 public class CommodityService {
+    private int maxCommoditiesForDecommissionCount;
     private List<String> commoditiesNames;
 
-    public CommodityService() {
+    public CommodityService(int maxCommoditiesForDecommissionCount) {
         this(
+                maxCommoditiesForDecommissionCount,
                 List.of(
                         "Грудка куриная ТРОЕКУРОВО",
                         "Сосиски СИБКОЛБАСЫ Молочные 1-ый сорт",
@@ -25,7 +27,7 @@ public class CommodityService {
     }
 
     public List<Commodity> getCommoditiesForDecommission() {
-        int decommissionedCommoditiesCount = (int) (Math.random() * 10);
+        int decommissionedCommoditiesCount = (int) (Math.random() * maxCommoditiesForDecommissionCount);
         List<Commodity> commodities = new ArrayList<>(decommissionedCommoditiesCount);
 
         for (int i = 0; i < decommissionedCommoditiesCount; i++) {

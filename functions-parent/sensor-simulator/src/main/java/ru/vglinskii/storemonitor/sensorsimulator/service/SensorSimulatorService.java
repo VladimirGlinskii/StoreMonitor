@@ -26,7 +26,8 @@ public class SensorSimulatorService {
     ) {
         this.sensorDao = sensorDao;
         this.devicesApi = devicesApi;
-        this.celsiusValueSampler = NormalDistribution.of(
+        this.celsiusValueSampler = NormalDistribution
+                .of(
                         properties.getSensorValueCelsiusMean(),
                         properties.getSensorValueCelsiusStandardDeviation()
                 )

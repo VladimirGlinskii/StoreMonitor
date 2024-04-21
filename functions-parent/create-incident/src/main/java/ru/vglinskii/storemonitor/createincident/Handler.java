@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.createincident.dao.IncidentDao;
 import ru.vglinskii.storemonitor.createincident.dto.CreateIncidentDtoRequest;
 import ru.vglinskii.storemonitor.createincident.service.IncidentService;
-import ru.vglinskii.storemonitor.functionscommon.config.ApplicationProperties;
+import ru.vglinskii.storemonitor.functionscommon.config.CommonApplicationProperties;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
 import ru.vglinskii.storemonitor.functionscommon.dto.HttpRequestDto;
 import ru.vglinskii.storemonitor.functionscommon.dto.HttpResponseDto;
@@ -24,7 +24,7 @@ import yandex.cloud.sdk.functions.YcFunction;
 
 public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Handler.class);
-    private ApplicationProperties properties;
+    private CommonApplicationProperties properties;
     private DatabaseConnectivity databaseConnectivity;
     private ObjectMapper objectMapper;
     private GlobalExceptionHandler globalExceptionHandler;
@@ -32,10 +32,10 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
     private IncidentService incidentService;
 
     public Handler() {
-        this(new ApplicationProperties());
+        this(new CommonApplicationProperties());
     }
 
-    public Handler(ApplicationProperties properties) {
+    public Handler(CommonApplicationProperties properties) {
         this.properties = properties;
         this.objectMapper = new AppObjectMapper();
         this.globalExceptionHandler = new GlobalExceptionHandler(objectMapper);

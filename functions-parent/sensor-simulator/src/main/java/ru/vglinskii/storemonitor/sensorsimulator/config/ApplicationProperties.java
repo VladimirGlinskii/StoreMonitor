@@ -2,10 +2,11 @@ package ru.vglinskii.storemonitor.sensorsimulator.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import ru.vglinskii.storemonitor.functionscommon.config.CommonApplicationProperties;
 
 @Getter
 @AllArgsConstructor
-public class ApplicationProperties extends ru.vglinskii.storemonitor.functionscommon.config.ApplicationProperties {
+public class ApplicationProperties extends CommonApplicationProperties {
     private final String devicesApiUrl;
     private final float sensorValueCelsiusMean;
     private final float sensorValueCelsiusStandardDeviation;
