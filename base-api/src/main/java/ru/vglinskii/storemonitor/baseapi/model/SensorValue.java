@@ -10,6 +10,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -25,6 +27,10 @@ import ru.vglinskii.storemonitor.common.enums.SensorUnit;
 @AllArgsConstructor
 @SuperBuilder
 @Entity
+@NamedEntityGraph(
+        name = "SensorValue.sensor",
+        attributeNodes = @NamedAttributeNode("sensor")
+)
 @Table(name = "sensor_value")
 public class SensorValue {
     @Id

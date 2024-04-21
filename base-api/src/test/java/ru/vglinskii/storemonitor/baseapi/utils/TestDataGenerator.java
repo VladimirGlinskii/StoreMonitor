@@ -3,7 +3,6 @@ package ru.vglinskii.storemonitor.baseapi.utils;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
 import ru.vglinskii.storemonitor.baseapi.model.DecommissionedReport;
@@ -82,7 +81,7 @@ public class TestDataGenerator {
                 .build();
     }
 
-    public Sensor createSensor(long id, Store store, List<SensorValue> values) {
+    public Sensor createSensor(long id, Store store) {
         var now = Instant.now();
 
         return Sensor.builder()
@@ -91,7 +90,6 @@ public class TestDataGenerator {
                 .factoryCode(String.valueOf(id))
                 .location(String.format("Location %d", id))
                 .store(store)
-                .values(values)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();

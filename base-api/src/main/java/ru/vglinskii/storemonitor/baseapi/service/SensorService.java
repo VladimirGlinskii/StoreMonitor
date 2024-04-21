@@ -10,45 +10,42 @@ import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorValueDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorWithValueDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorWithValuesDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.repository.SensorRepository;
+import ru.vglinskii.storemonitor.baseapi.repository.SensorValueRepository;
 
 @Service
 @Slf4j
 public class SensorService {
-    private final SensorRepository sensorRepository;
+    private final SensorValueRepository sensorValueRepository;
     private final AuthorizationContextHolder authorizationContextHolder;
 
     public SensorService(
             SensorRepository sensorRepository,
-            AuthorizationContextHolder authorizationContextHolder
+            SensorValueRepository sensorValueRepository, AuthorizationContextHolder authorizationContextHolder
     ) {
-        this.sensorRepository = sensorRepository;
+        this.sensorValueRepository = sensorValueRepository;
         this.authorizationContextHolder = authorizationContextHolder;
     }
 
     public List<SensorWithValueDtoResponse> getSensorsWithCurrentValue() {
         var storeId = authorizationContextHolder.getContext().getStoreId();
-        var sensors = sensorRepository.findByStoreIdWithLastValue(storeId);
+        var lastSensorsValues = sensorValueRepository.findLastForSensorsByStoreId(storeId);
         log.info("Received get sensors request for store {}", storeId);
 
-        return sensors.stream()
-                .map((sensor) -> SensorWithValueDtoResponse.builder()
-                        .id(sensor.getId())
-                        .inventoryNumber(sensor.getInventoryNumber())
-                        .factoryCode(sensor.getFactoryCode())
-                        .location(sensor.getLocation())
-                        .value(sensor.getValues().stream()
-                                .findFirst()
-                                .map((value) -> SensorValueDtoResponse.builder()
-                                        .value(value.getValue())
-                                        .unit(value.getUnit())
-                                        .datetime(value.getDatetime())
-                                        .build()
-                                )
-                                .orElse(null)
+        return lastSensorsValues.stream()
+                .map((sv) -> SensorWithValueDtoResponse.builder()
+                        .id(sv.getSensor().getId())
+                        .inventoryNumber(sv.getSensor().getInventoryNumber())
+                        .factoryCode(sv.getSensor().getFactoryCode())
+                        .location(sv.getSensor().getLocation())
+                        .value(SensorValueDtoResponse.builder()
+                                .value(sv.getValue())
+                                .unit(sv.getUnit())
+                                .datetime(sv.getDatetime())
+                                .build()
                         )
                         .build()
                 )
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public List<SensorWithValuesDtoResponse> getTemperatureReport(
@@ -59,25 +56,31 @@ public class SensorService {
         Instant to = (rawTo.isAfter(Instant.now())) ? Instant.now() : rawTo;
         log.info("Received get temperature report request for store {}", storeId);
 
-        var sensors = sensorRepository.findByStoreIdInInterval(storeId, from, to);
+        var sensorIdToValuesMap = sensorValueRepository.findByStoreIdInInterval(storeId, from, to)
+                .stream()
+                .collect(Collectors.groupingBy((sv) -> sv.getSensor().getId()));
 
-        return sensors.stream()
-                .map((sensor) -> SensorWithValuesDtoResponse.builder()
-                        .id(sensor.getId())
-                        .inventoryNumber(sensor.getInventoryNumber())
-                        .factoryCode(sensor.getFactoryCode())
-                        .location(sensor.getLocation())
-                        .values(sensor.getValues().stream()
-                                .map((value) -> SensorValueDtoResponse.builder()
-                                        .value(value.getValue())
-                                        .unit(value.getUnit())
-                                        .datetime(value.getDatetime())
-                                        .build()
-                                )
-                                .collect(Collectors.toList())
-                        )
-                        .build()
-                )
-                .collect(Collectors.toList());
+        return sensorIdToValuesMap.entrySet().stream()
+                .map((entry) -> {
+                    var values = entry.getValue();
+                    var sensor = values.get(0).getSensor();
+
+                    return SensorWithValuesDtoResponse.builder()
+                            .id(sensor.getId())
+                            .inventoryNumber(sensor.getInventoryNumber())
+                            .factoryCode(sensor.getFactoryCode())
+                            .location(sensor.getLocation())
+                            .values(values.stream()
+                                    .map((value) -> SensorValueDtoResponse.builder()
+                                            .value(value.getValue())
+                                            .unit(value.getUnit())
+                                            .datetime(value.getDatetime())
+                                            .build()
+                                    )
+                                    .toList()
+                            )
+                            .build();
+                })
+                .toList();
     }
 }

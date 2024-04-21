@@ -76,9 +76,9 @@ public class SensorIntegrationTest extends IntegrationTestBase {
                 testDataGenerator.createEmployee(1, store1, EmployeeType.DIRECTOR)
         );
 
-        sensor1InStore1 = sensorRepository.save(testDataGenerator.createSensor(1, store1, null));
-        sensor2InStore1 = sensorRepository.save(testDataGenerator.createSensor(2, store1, null));
-        sensor1InStore2 = sensorRepository.save(testDataGenerator.createSensor(3, store2, null));
+        sensor1InStore1 = sensorRepository.save(testDataGenerator.createSensor(1, store1));
+        sensor2InStore1 = sensorRepository.save(testDataGenerator.createSensor(2, store1));
+        sensor1InStore2 = sensorRepository.save(testDataGenerator.createSensor(3, store2));
 
         sensor1InStore1Values = List.of(
                 sensorValueRepository.save(testDataGenerator.createSensorValue(1, sensor1InStore1, BASE_DATE)),
