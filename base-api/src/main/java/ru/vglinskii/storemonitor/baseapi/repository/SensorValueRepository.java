@@ -10,8 +10,11 @@ import ru.vglinskii.storemonitor.baseapi.model.SensorValue;
 public interface SensorValueRepository extends JpaRepository<SensorValue, Long> {
     @Query(value = """
             SELECT sv FROM SensorValue sv
-            LEFT JOIN SensorValue sv2 ON sv.sensor.id = sv2.sensor.id AND sv.datetime < sv2.datetime
-            WHERE sv2.id is null AND sv.sensor.store.id = :storeId
+            JOIN (
+                SELECT sv2.sensor.id as sensorId, MAX(datetime) as datetime
+                FROM SensorValue sv2 GROUP BY sv2.sensor.id
+            ) sv2 ON sv.sensor.id = sv2.sensorId AND sv.datetime = sv2.datetime
+            WHERE sv.sensor.store.id = :storeId
             """)
     @EntityGraph(value = "SensorValue.sensor")
     List<SensorValue> findLastForSensorsByStoreId(long storeId);
