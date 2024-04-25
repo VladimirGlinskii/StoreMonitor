@@ -1,0 +1,77 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="vladimir.glinskiy99@gmail.com" id="2024-03-26T10-40-create-employee-table">
+        <createTable tableName="employee">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_name" type="VARCHAR(63)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(63)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="secret" type="VARCHAR(127)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="ENUM('DIRECTOR', 'CASHIER')">
+                <constraints nullable="false"/>
+            </column>
+            <column name="store_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="employee-store-idx" tableName="employee">
+            <column name="store_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="store_id" baseTableName="employee"
+                                 constraintName="employee-store-fk" onDelete="CASCADE"
+                                 referencedColumnNames="id" referencedTableName="store"/>
+    </changeSet>
+
+    <changeSet author="vladimir.glinskiy99@gmail.com" id="2024-04-02T16-10-add-unique-constraint-for-employee-secret">
+        <addUniqueConstraint tableName="employee" columnNames="secret"/>
+    </changeSet>
+
+    <changeSet author="vladimir.glinskiy99@gmail.com" id="2024-04-02T16-18-insert-initial-employees">
+        <insert tableName="employee">
+            <column name="type" value="DIRECTOR"/>
+            <column name="first_name" value="Vladimir"/>
+            <column name="last_name" value="Glinskii"/>
+            <column name="secret" value="vglinskii@secret"/>
+            <column name="store_id" value="1"/>
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+        </insert>
+
+        <insert tableName="employee">
+            <column name="type" value="CASHIER"/>
+            <column name="first_name" value="Vasily"/>
+            <column name="last_name" value="Cashier"/>
+            <column name="secret" value="cashier1@secret"/>
+            <column name="store_id" value="1"/>
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+        </insert>
+
+        <insert tableName="employee">
+            <column name="type" value="CASHIER"/>
+            <column name="first_name" value="Ivan"/>
+            <column name="last_name" value="Cashier"/>
+            <column name="secret" value="cashier2@secret"/>
+            <column name="store_id" value="1"/>
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

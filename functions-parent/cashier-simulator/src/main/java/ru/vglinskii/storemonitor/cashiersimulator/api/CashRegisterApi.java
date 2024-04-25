@@ -7,11 +7,11 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vglinskii.storemonitor.cashiersimulator.model.CashRegister;
 import ru.vglinskii.storemonitor.cashiersimulator.model.Cashier;
 import ru.vglinskii.storemonitor.functionscommon.api.ApiClientException;
 import ru.vglinskii.storemonitor.functionscommon.api.AppHttpResponseHandler;
 import ru.vglinskii.storemonitor.functionscommon.api.HttpResponse;
+import ru.vglinskii.storemonitor.functionscommon.model.CashRegister;
 
 public class CashRegisterApi {
     private final static Logger LOGGER = LoggerFactory.getLogger(CashRegisterApi.class);

@@ -1,19 +1,17 @@
 package ru.vglinskii.storemonitor.authfunction.dao;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import ru.vglinskii.storemonitor.authfunction.model.Employee;
+import ru.vglinskii.storemonitor.functionscommon.dao.CommonEmployeeDao;
 import ru.vglinskii.storemonitor.functionscommon.dao.DataAccessException;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
+import ru.vglinskii.storemonitor.functionscommon.model.Employee;
 
 @Slf4j
-public class EmployeeDao {
-    private DatabaseConnectivity databaseConnectivity;
-
+public class EmployeeDao extends CommonEmployeeDao {
     public EmployeeDao(DatabaseConnectivity databaseConnectivity) {
-        this.databaseConnectivity = databaseConnectivity;
+        super(databaseConnectivity);
     }
 
     public Optional<Employee> findBySecret(String secret) {
@@ -28,15 +26,5 @@ public class EmployeeDao {
         } catch (SQLException e) {
             throw new DataAccessException(e);
         }
-    }
-
-    private Employee mapResultSetToEmployee(ResultSet resultSet) throws SQLException {
-        return Employee.builder()
-                .id(resultSet.getLong("id"))
-                .secret(resultSet.getString("secret"))
-                .storeId(resultSet.getLong("store_id"))
-                .createdAt(resultSet.getTimestamp("created_at").toInstant())
-                .updatedAt(resultSet.getTimestamp("updated_at").toInstant())
-                .build();
     }
 }

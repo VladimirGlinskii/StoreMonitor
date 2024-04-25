@@ -4,15 +4,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import ru.vglinskii.storemonitor.decommissionedreportsimulator.model.Store;
+import ru.vglinskii.storemonitor.functionscommon.dao.CommonStoreDao;
 import ru.vglinskii.storemonitor.functionscommon.dao.DataAccessException;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
+import ru.vglinskii.storemonitor.functionscommon.model.Store;
 
-public class StoreDao {
-    private DatabaseConnectivity databaseConnectivity;
-
+public class StoreDao extends CommonStoreDao {
     public StoreDao(DatabaseConnectivity databaseConnectivity) {
-        this.databaseConnectivity = databaseConnectivity;
+        super(databaseConnectivity);
     }
 
     public List<Store> findAll() {
@@ -22,7 +21,7 @@ public class StoreDao {
         ) {
             var stores = new ArrayList<Store>();
             while (resultSet.next()) {
-                stores.add(mapResultSetToSensor(resultSet));
+                stores.add(mapResultSetToStore(resultSet));
             }
 
             return stores;
@@ -31,9 +30,10 @@ public class StoreDao {
         }
     }
 
-    private Store mapResultSetToSensor(ResultSet resultSet) throws SQLException {
+    private Store mapResultSetToStore(ResultSet resultSet) throws SQLException {
         return Store.builder()
                 .id(resultSet.getLong("id"))
+                .location(resultSet.getString("location"))
                 .createdAt(resultSet.getTimestamp("created_at").toInstant())
                 .updatedAt(resultSet.getTimestamp("updated_at").toInstant())
                 .build();

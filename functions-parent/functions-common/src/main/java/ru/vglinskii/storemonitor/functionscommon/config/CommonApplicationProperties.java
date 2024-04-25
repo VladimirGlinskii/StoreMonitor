@@ -1,11 +1,11 @@
 package ru.vglinskii.storemonitor.functionscommon.config;
 
 import java.util.function.Function;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
-@AllArgsConstructor
+@SuperBuilder
 public class CommonApplicationProperties {
     private final String dbUrl;
     private final String dbPassword;

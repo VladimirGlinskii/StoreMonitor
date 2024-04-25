@@ -4,15 +4,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import ru.vglinskii.storemonitor.functionscommon.dao.CommonSensorDao;
 import ru.vglinskii.storemonitor.functionscommon.dao.DataAccessException;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
-import ru.vglinskii.storemonitor.sensorsimulator.model.Sensor;
+import ru.vglinskii.storemonitor.functionscommon.model.Sensor;
 
-public class SensorDao {
-    private DatabaseConnectivity databaseConnectivity;
-
+public class SensorDao extends CommonSensorDao {
     public SensorDao(DatabaseConnectivity databaseConnectivity) {
-        this.databaseConnectivity = databaseConnectivity;
+        super(databaseConnectivity);
     }
 
     public List<Sensor> findAll() {
@@ -34,6 +33,10 @@ public class SensorDao {
     private Sensor mapResultSetToSensor(ResultSet resultSet) throws SQLException {
         return Sensor.builder()
                 .id(resultSet.getLong("id"))
+                .storeId(resultSet.getLong("store_id"))
+                .factoryCode(resultSet.getString("factory_code"))
+                .inventoryNumber(resultSet.getString("inventory_number"))
+                .location(resultSet.getString("location"))
                 .createdAt(resultSet.getTimestamp("created_at").toInstant())
                 .updatedAt(resultSet.getTimestamp("updated_at").toInstant())
                 .build();

@@ -15,10 +15,9 @@ public class AuthService {
 
         return employeeOptional
                 .map(employee -> new AuthorizationContextDto(
-                                employee.getStoreId(),
-                                employee.getId()
-                        )
-                )
+                        employee.getStoreId(),
+                        employee.getId()
+                ))
                 .orElse(null);
 
     }

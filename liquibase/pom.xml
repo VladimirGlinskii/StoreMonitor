@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ru.vglinskii.storemonitor</groupId>
+    <artifactId>liquibase</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <liquibase.version>4.24.0</liquibase.version>
+        <mysql-connector-java.version>8.0.33</mysql-connector-java.version>
+        <dbUsername>root</dbUsername>
+        <dbPassword>root</dbPassword>
+        <dbUrl>jdbc:mysql://localhost:3306/store-monitor</dbUrl>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql-connector-java.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>${liquibase.version}</version>
+                <configuration>
+                    <driver>com.mysql.cj.jdbc.Driver</driver>
+                    <url>${dbUrl}</url>
+                    <username>${dbUsername}</username>
+                    <password>${dbPassword}</password>
+                    <changeLogFile>config/changelog.xml</changeLogFile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

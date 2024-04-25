@@ -13,6 +13,7 @@ public class IncidentService {
 
     public IncidentsReportDtoResponse getIncidentsReport(long storeId, Instant from, Instant to) {
         var incidents = incidentDao.findByStoreIdInInterval(storeId, from, to);
+
         var responseDto = new IncidentsReportDtoResponse();
         responseDto.setTotalIncidents(incidents.size());
 

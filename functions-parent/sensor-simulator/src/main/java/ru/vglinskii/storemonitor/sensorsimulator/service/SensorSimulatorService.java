@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.common.enums.SensorUnit;
 import ru.vglinskii.storemonitor.sensorsimulator.api.DevicesApi;
-import ru.vglinskii.storemonitor.sensorsimulator.config.ApplicationProperties;
+import ru.vglinskii.storemonitor.sensorsimulator.config.SensorSimulatorConfig;
 import ru.vglinskii.storemonitor.sensorsimulator.dao.SensorDao;
 import ru.vglinskii.storemonitor.sensorsimulator.dto.UpdateSensorValueDtoRequest;
 import ru.vglinskii.storemonitor.sensorsimulator.dto.UpdateSensorsValuesDtoRequest;
@@ -22,14 +22,14 @@ public class SensorSimulatorService {
     public SensorSimulatorService(
             SensorDao sensorDao,
             DevicesApi devicesApi,
-            ApplicationProperties properties
+            SensorSimulatorConfig config
     ) {
         this.sensorDao = sensorDao;
         this.devicesApi = devicesApi;
         this.celsiusValueSampler = NormalDistribution
                 .of(
-                        properties.getSensorValueCelsiusMean(),
-                        properties.getSensorValueCelsiusStandardDeviation()
+                        config.getSensorValueCelsiusMean(),
+                        config.getSensorValueCelsiusStandardDeviation()
                 )
                 .createSampler(KISS.create());
     }
@@ -49,7 +49,7 @@ public class SensorSimulatorService {
         }
 
         LOGGER.info("Sending request to update sensors values");
-        var response = this.devicesApi.updateSensorsValues(new UpdateSensorsValuesDtoRequest(updateRequestDtos));
+        var response = devicesApi.updateSensorsValues(new UpdateSensorsValuesDtoRequest(updateRequestDtos));
 
         if (response.is2xxSuccessful()) {
             LOGGER.info("Update sensors values request sent");

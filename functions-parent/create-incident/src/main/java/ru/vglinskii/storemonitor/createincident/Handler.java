@@ -3,15 +3,15 @@ package ru.vglinskii.storemonitor.createincident;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vglinskii.storemonitor.createincident.dao.IncidentDao;
 import ru.vglinskii.storemonitor.createincident.dto.CreateIncidentDtoRequest;
 import ru.vglinskii.storemonitor.createincident.service.IncidentService;
 import ru.vglinskii.storemonitor.functionscommon.config.CommonApplicationProperties;
+import ru.vglinskii.storemonitor.functionscommon.dao.CommonIncidentDao;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
+import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivityFactory;
 import ru.vglinskii.storemonitor.functionscommon.dto.HttpRequestDto;
 import ru.vglinskii.storemonitor.functionscommon.dto.HttpResponseDto;
 import ru.vglinskii.storemonitor.functionscommon.exception.AppRuntimeException;
@@ -24,7 +24,6 @@ import yandex.cloud.sdk.functions.YcFunction;
 
 public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Handler.class);
-    private CommonApplicationProperties properties;
     private DatabaseConnectivity databaseConnectivity;
     private ObjectMapper objectMapper;
     private GlobalExceptionHandler globalExceptionHandler;
@@ -32,22 +31,17 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
     private IncidentService incidentService;
 
     public Handler() {
-        this(new CommonApplicationProperties());
+        this(DatabaseConnectivityFactory.create(
+                new CommonApplicationProperties()
+        ));
     }
 
-    public Handler(CommonApplicationProperties properties) {
-        this.properties = properties;
+    public Handler(DatabaseConnectivity databaseConnectivity) {
         this.objectMapper = new AppObjectMapper();
         this.globalExceptionHandler = new GlobalExceptionHandler(objectMapper);
         this.beanValidator = new BeanValidator();
-
-        var dbProps = new Properties();
-        dbProps.setProperty("ssl", "true");
-        dbProps.setProperty("user", properties.getDbUser());
-        dbProps.setProperty("password", properties.getDbPassword());
-        this.databaseConnectivity = new DatabaseConnectivity(properties.getDbUrl(), dbProps);
-
-        var incidentDao = new IncidentDao(databaseConnectivity);
+        this.databaseConnectivity = databaseConnectivity;
+        var incidentDao = new CommonIncidentDao(databaseConnectivity);
         this.incidentService = new IncidentService(incidentDao);
     }
 
@@ -59,9 +53,14 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
                 var authContext = request.getRequestContext().getAuthorizer();
                 var requestBody = objectMapper.readValue(request.getBody(), CreateIncidentDtoRequest.class);
                 beanValidator.validate(requestBody);
-                incidentService.createIncident(requestBody, authContext.getStoreId());
 
-                return new HttpResponseDto(HttpStatus.SC_OK, "", Map.of());
+                return new HttpResponseDto(
+                        HttpStatus.SC_OK,
+                        objectMapper.writeValueAsString(
+                                incidentService.createIncident(requestBody, authContext.getStoreId())
+                        ),
+                        Map.of()
+                );
             } catch (JsonProcessingException e) {
                 LOGGER.error("Invalid request", e);
                 throw new AppRuntimeException(ErrorCode.INVALID_REQUEST);

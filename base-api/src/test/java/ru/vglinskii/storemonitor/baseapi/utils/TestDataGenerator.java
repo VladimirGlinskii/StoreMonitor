@@ -103,7 +103,7 @@ public class TestDataGenerator {
         return SensorValue.builder()
                 .id(id)
                 .unit(SensorUnit.CELSIUS)
-                .value((float) (Math.random() * 10))
+                .value((float) Math.round(Math.random() * 1000) / 100)
                 .datetime(datetime)
                 .sensor(sensor)
                 .build();

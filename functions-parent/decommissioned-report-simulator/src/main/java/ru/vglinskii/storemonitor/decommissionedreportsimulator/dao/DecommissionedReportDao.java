@@ -1,8 +1,11 @@
 package ru.vglinskii.storemonitor.decommissionedreportsimulator.dao;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import ru.vglinskii.storemonitor.decommissionedreportsimulator.model.DecommissionedReport;
 import ru.vglinskii.storemonitor.functionscommon.dao.DataAccessException;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
@@ -12,6 +15,15 @@ public class DecommissionedReportDao {
 
     public DecommissionedReportDao(DatabaseConnectivity databaseConnectivity) {
         this.databaseConnectivity = databaseConnectivity;
+    }
+
+    public void deleteAll() {
+        var connection = databaseConnectivity.getConnection();
+        try (var stmt = connection.prepareStatement("DELETE FROM report")) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException(e);
+        }
     }
 
     public DecommissionedReport create(DecommissionedReport report) {
@@ -36,5 +48,30 @@ public class DecommissionedReportDao {
         } catch (SQLException e) {
             throw new DataAccessException(e);
         }
+    }
+
+    public List<DecommissionedReport> findAll() {
+        var connection = databaseConnectivity.getConnection();
+        try (var stmt = connection.prepareStatement("SELECT * FROM report");
+             var resultSet = stmt.executeQuery()
+        ) {
+            var reports = new ArrayList<DecommissionedReport>();
+            while (resultSet.next()) {
+                reports.add(mapResultSetToReport(resultSet));
+            }
+
+            return reports;
+        } catch (SQLException e) {
+            throw new DataAccessException(e);
+        }
+    }
+
+    private DecommissionedReport mapResultSetToReport(ResultSet resultSet) throws SQLException {
+        return DecommissionedReport.builder()
+                .id(resultSet.getLong("id"))
+                .link(resultSet.getString("link"))
+                .storeId(resultSet.getLong("store_id"))
+                .createdAt(resultSet.getTimestamp("created_at").toInstant())
+                .build();
     }
 }

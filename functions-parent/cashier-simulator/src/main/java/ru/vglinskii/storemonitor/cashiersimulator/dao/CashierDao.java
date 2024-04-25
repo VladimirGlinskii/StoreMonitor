@@ -2,6 +2,9 @@ package ru.vglinskii.storemonitor.cashiersimulator.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import ru.vglinskii.storemonitor.cashiersimulator.model.Cashier;
@@ -27,23 +30,25 @@ public class CashierDao {
                         SELECT
                             cashier_id,
                             (MAX(closed_at is null) != true) as is_free,
-                            SUM(TIMESTAMPDIFF(SECOND, created_at, IFNULL(closed_at, UTC_TIMESTAMP()))) as worked_seconds_in_day
+                            SUM(TIMESTAMPDIFF(SECOND, created_at, IFNULL(closed_at, ?))) as worked_seconds_in_day
                         FROM cash_register_session s
-                        WHERE s.closed_at is null OR s.created_at >= UTC_DATE()
+                        WHERE s.closed_at is null OR s.created_at >= ?
                         GROUP BY cashier_id
                     ) sessions_info ON sessions_info.cashier_id = c.id
                     WHERE type = "CASHIER"
                     ORDER BY worked_seconds_in_day ASC
                 """;
-        try (var stmt = connection.prepareStatement(query);
-             var resultSet = stmt.executeQuery()
-        ) {
-            var cashiers = new ArrayList<Cashier>();
-            while (resultSet.next()) {
-                cashiers.add(mapResultSetToCashier(resultSet));
-            }
+        try (var stmt = connection.prepareStatement(query)) {
+            stmt.setTimestamp(1, Timestamp.from(Instant.now()));
+            stmt.setTimestamp(2, Timestamp.from(Instant.now().truncatedTo(ChronoUnit.DAYS)));
+            try (var resultSet = stmt.executeQuery()) {
+                var cashiers = new ArrayList<Cashier>();
+                while (resultSet.next()) {
+                    cashiers.add(mapResultSetToCashier(resultSet));
+                }
 
-            return cashiers;
+                return cashiers;
+            }
         } catch (SQLException e) {
             throw new DataAccessException(e);
         }

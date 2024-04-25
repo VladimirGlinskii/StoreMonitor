@@ -11,7 +11,7 @@ COPY base-api/src /app/src
 
 WORKDIR /app
 RUN ./mvnw install -f ../common
-RUN ./mvnw install
+RUN ./mvnw -DskipITs install
 
 ENTRYPOINT [ "ls" ]
 

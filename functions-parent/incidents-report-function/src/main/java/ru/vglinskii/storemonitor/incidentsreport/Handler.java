@@ -4,12 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.functionscommon.config.CommonApplicationProperties;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
+import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivityFactory;
 import ru.vglinskii.storemonitor.functionscommon.dto.HttpRequestDto;
 import ru.vglinskii.storemonitor.functionscommon.dto.HttpResponseDto;
 import ru.vglinskii.storemonitor.functionscommon.exception.AppRuntimeException;
@@ -23,26 +23,23 @@ import yandex.cloud.sdk.functions.YcFunction;
 
 public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Handler.class);
-    private CommonApplicationProperties properties;
     private DatabaseConnectivity databaseConnectivity;
     private ObjectMapper objectMapper;
     private GlobalExceptionHandler globalExceptionHandler;
     private IncidentService incidentService;
 
     public Handler() {
-        this(new CommonApplicationProperties());
+        this(
+                DatabaseConnectivityFactory.create(
+                        new CommonApplicationProperties()
+                )
+        );
     }
 
-    public Handler(CommonApplicationProperties properties) {
-        this.properties = properties;
+    public Handler(DatabaseConnectivity databaseConnectivity) {
         this.objectMapper = new AppObjectMapper();
         this.globalExceptionHandler = new GlobalExceptionHandler(objectMapper);
-
-        var dbProps = new Properties();
-        dbProps.setProperty("ssl", "true");
-        dbProps.setProperty("user", properties.getDbUser());
-        dbProps.setProperty("password", properties.getDbPassword());
-        this.databaseConnectivity = new DatabaseConnectivity(properties.getDbUrl(), dbProps);
+        this.databaseConnectivity = databaseConnectivity;
 
         var incidentDao = new IncidentDao(databaseConnectivity);
         this.incidentService = new IncidentService(incidentDao);

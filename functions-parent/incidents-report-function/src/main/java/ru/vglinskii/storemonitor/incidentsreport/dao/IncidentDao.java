@@ -6,15 +6,16 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import ru.vglinskii.storemonitor.common.enums.IncidentType;
+import ru.vglinskii.storemonitor.functionscommon.dao.CommonIncidentDao;
 import ru.vglinskii.storemonitor.functionscommon.dao.DataAccessException;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
-import ru.vglinskii.storemonitor.incidentsreport.model.Incident;
+import ru.vglinskii.storemonitor.functionscommon.model.Incident;
 
-public class IncidentDao {
-    private DatabaseConnectivity databaseConnectivity;
+public class IncidentDao extends CommonIncidentDao {
 
     public IncidentDao(DatabaseConnectivity databaseConnectivity) {
-        this.databaseConnectivity = databaseConnectivity;
+        super(databaseConnectivity);
     }
 
     public List<Incident> findByStoreIdInInterval(long storeId, Instant from, Instant to) {
@@ -44,6 +45,9 @@ public class IncidentDao {
     private Incident mapResultSetToIncident(ResultSet rs) throws SQLException {
         return Incident.builder()
                 .id(rs.getLong("id"))
+                .description(rs.getString("description"))
+                .datetime(rs.getTimestamp("datetime").toInstant())
+                .eventType(IncidentType.valueOf(rs.getString("event_type")))
                 .calledAmbulance(rs.getBoolean("called_ambulance"))
                 .calledFireDepartment(rs.getBoolean("called_fire_department"))
                 .calledGasService(rs.getBoolean("called_gas_service"))
