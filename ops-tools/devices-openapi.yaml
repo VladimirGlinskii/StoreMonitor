@@ -1,0 +1,11 @@
+openapi: "3.0.0"
+info:
+  version: 0.5.0
+  title: Devices API
+paths:
+  /api/sensors/values:
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${update_sensor_value_function_id}
+        service_account_id: ${service_account_id}
