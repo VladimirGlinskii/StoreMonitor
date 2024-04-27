@@ -1,11 +1,11 @@
 package ru.vglinskii.storemonitor.cashiersimulator.config;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 import ru.vglinskii.storemonitor.functionscommon.config.CommonApplicationProperties;
 
 @Getter
-@AllArgsConstructor
+@SuperBuilder
 public class ApplicationProperties extends CommonApplicationProperties {
     private final String baseApiUrl;
 

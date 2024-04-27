@@ -1,0 +1,28 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="vladimir.glinskiy99@gmail.com" id="2024-03-26T10-34-create-store-table">
+        <createTable tableName="store">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="location" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="vladimir.glinskiy99@gmail.com" id="2024-04-02T16-18-insert-initial-store">
+        <insert tableName="store">
+            <column name="id" value="1"/>
+            <column name="location" value="улица Ватутина, 3"/>
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

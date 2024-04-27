@@ -1,6 +1,7 @@
 package ru.vglinskii.storemonitor.cashiersimulator;
 
-import java.util.Properties;
+import java.util.SplittableRandom;
+import java.util.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.cashiersimulator.api.CashRegisterApi;
@@ -9,33 +10,47 @@ import ru.vglinskii.storemonitor.cashiersimulator.dao.CashRegisterDao;
 import ru.vglinskii.storemonitor.cashiersimulator.dao.CashierDao;
 import ru.vglinskii.storemonitor.cashiersimulator.service.WorkDaySimulatorService;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
+import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivityFactory;
 import ru.vglinskii.storemonitor.functionscommon.dto.TriggerRequestDto;
 import yandex.cloud.sdk.functions.Context;
 import yandex.cloud.sdk.functions.YcFunction;
 
 public class Handler implements YcFunction<TriggerRequestDto, String> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Handler.class);
-    private ApplicationProperties properties;
     private DatabaseConnectivity databaseConnectivity;
     private WorkDaySimulatorService workDaySimulatorService;
 
     public Handler() {
-        this(new ApplicationProperties());
+        var properties = new ApplicationProperties();
+        init(
+                DatabaseConnectivityFactory.create(properties),
+                new CashRegisterApi(properties.getBaseApiUrl()),
+                new SplittableRandom()
+        );
     }
 
-    public Handler(ApplicationProperties properties) {
-        this.properties = properties;
+    public Handler(
+            DatabaseConnectivity databaseConnectivity,
+            CashRegisterApi cashRegisterApi,
+            RandomGenerator randomGenerator
+    ) {
+        init(databaseConnectivity, cashRegisterApi, randomGenerator);
+    }
 
-        var dbProps = new Properties();
-        dbProps.setProperty("ssl", "true");
-        dbProps.setProperty("user", properties.getDbUser());
-        dbProps.setProperty("password", properties.getDbPassword());
-        this.databaseConnectivity = new DatabaseConnectivity(properties.getDbUrl(), dbProps);
-
+    private void init(
+            DatabaseConnectivity databaseConnectivity,
+            CashRegisterApi cashRegisterApi,
+            RandomGenerator randomGenerator
+    ) {
+        this.databaseConnectivity = databaseConnectivity;
         var cashierDao = new CashierDao(databaseConnectivity);
         var cashRegisterDao = new CashRegisterDao(databaseConnectivity);
-        var cashRegisterApi = new CashRegisterApi(properties.getBaseApiUrl());
-        this.workDaySimulatorService = new WorkDaySimulatorService(cashierDao, cashRegisterDao, cashRegisterApi);
+        this.workDaySimulatorService = new WorkDaySimulatorService(
+                cashierDao,
+                cashRegisterDao,
+                cashRegisterApi,
+                randomGenerator
+        );
     }
 
     @Override

@@ -5,30 +5,35 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.cashiersimulator.api.CashRegisterApi;
 import ru.vglinskii.storemonitor.cashiersimulator.dao.CashRegisterDao;
 import ru.vglinskii.storemonitor.cashiersimulator.dao.CashierDao;
-import ru.vglinskii.storemonitor.cashiersimulator.model.CashRegister;
-import ru.vglinskii.storemonitor.cashiersimulator.model.CashRegisterSession;
 import ru.vglinskii.storemonitor.cashiersimulator.model.Cashier;
+import static ru.vglinskii.storemonitor.cashiersimulator.utils.ApplicationConstants.CLOSE_CASH_REGISTER_PROBABILITY;
+import ru.vglinskii.storemonitor.functionscommon.model.CashRegister;
+import ru.vglinskii.storemonitor.functionscommon.model.CashRegisterSession;
 
 public class WorkDaySimulatorService {
     private final static Logger LOGGER = LoggerFactory.getLogger(WorkDaySimulatorService.class);
     private CashierDao cashierDao;
     private CashRegisterDao cashRegisterDao;
     private CashRegisterApi cashRegisterApi;
+    private RandomGenerator randomGenerator;
 
     public WorkDaySimulatorService(
             CashierDao cashierDao,
             CashRegisterDao cashRegisterDao,
-            CashRegisterApi cashRegisterApi
+            CashRegisterApi cashRegisterApi,
+            RandomGenerator randomGenerator
     ) {
         this.cashierDao = cashierDao;
         this.cashRegisterDao = cashRegisterDao;
         this.cashRegisterApi = cashRegisterApi;
+        this.randomGenerator = randomGenerator;
     }
 
     public void updateCashRegistersStates() {
@@ -81,7 +86,7 @@ public class WorkDaySimulatorService {
 
             if (lessWorkedFreeCashier != null) {
                 this.openCashRegister(register, currentCashier, lessWorkedFreeCashier);
-            } else if (currentCashier != null && Math.random() < 0.25) {
+            } else if (currentCashier != null && randomGenerator.nextFloat(0, 1) < CLOSE_CASH_REGISTER_PROBABILITY) {
                 this.closeCashRegister(register, currentCashier);
             }
         }

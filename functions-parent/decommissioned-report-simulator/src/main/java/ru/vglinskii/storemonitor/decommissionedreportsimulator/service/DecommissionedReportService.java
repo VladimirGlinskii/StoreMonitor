@@ -1,6 +1,5 @@
 package ru.vglinskii.storemonitor.decommissionedreportsimulator.service;
 
-import java.io.File;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -51,8 +50,8 @@ public class DecommissionedReportService {
                     .createdAt(now)
                     .build();
             var commodities = commodityService.getCommoditiesForDecommission();
-            var reportFile = reportGeneratorService.generateReportContent(reportEntity, commodities);
-            uploadReportObject(reportEntity, reportFile);
+            var reportContent = reportGeneratorService.generateReportContent(reportEntity, commodities);
+            uploadReportObject(reportEntity, reportContent);
             saveReportEntity(reportEntity);
         }
     }

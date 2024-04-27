@@ -5,12 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.functionscommon.config.CommonApplicationProperties;
+import ru.vglinskii.storemonitor.functionscommon.dao.CommonSensorValueDao;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
+import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivityFactory;
 import ru.vglinskii.storemonitor.functionscommon.dto.HttpRequestDto;
 import ru.vglinskii.storemonitor.functionscommon.dto.HttpResponseDto;
 import ru.vglinskii.storemonitor.functionscommon.exception.AppRuntimeException;
@@ -18,7 +19,6 @@ import ru.vglinskii.storemonitor.functionscommon.exception.ErrorCode;
 import ru.vglinskii.storemonitor.functionscommon.exception.GlobalExceptionHandler;
 import ru.vglinskii.storemonitor.functionscommon.utils.BeanValidator;
 import ru.vglinskii.storemonitor.functionscommon.utils.serialization.AppObjectMapper;
-import ru.vglinskii.storemonitor.updatesensorvalue.dao.SensorValueDao;
 import ru.vglinskii.storemonitor.updatesensorvalue.dto.UpdateSensorsValuesDtoRequest;
 import ru.vglinskii.storemonitor.updatesensorvalue.service.SensorService;
 import yandex.cloud.sdk.functions.Context;
@@ -26,28 +26,25 @@ import yandex.cloud.sdk.functions.YcFunction;
 
 public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Handler.class);
-    private CommonApplicationProperties properties;
     private DatabaseConnectivity databaseConnectivity;
     private ObjectMapper objectMapper;
     private GlobalExceptionHandler globalExceptionHandler;
     private SensorService sensorService;
 
     public Handler() {
-        this(new CommonApplicationProperties());
+        this(
+                DatabaseConnectivityFactory.create(
+                        new CommonApplicationProperties()
+                )
+        );
     }
 
-    public Handler(CommonApplicationProperties properties) {
-        this.properties = properties;
+    public Handler(DatabaseConnectivity databaseConnectivity) {
         this.objectMapper = new AppObjectMapper();
         this.globalExceptionHandler = new GlobalExceptionHandler(objectMapper);
+        this.databaseConnectivity = databaseConnectivity;
 
-        var dbProps = new Properties();
-        dbProps.setProperty("ssl", "true");
-        dbProps.setProperty("user", properties.getDbUser());
-        dbProps.setProperty("password", properties.getDbPassword());
-        this.databaseConnectivity = new DatabaseConnectivity(properties.getDbUrl(), dbProps);
-
-        var sensorValueDao = new SensorValueDao(databaseConnectivity);
+        var sensorValueDao = new CommonSensorValueDao(databaseConnectivity);
         var beanValidator = new BeanValidator();
         this.sensorService = new SensorService(sensorValueDao, beanValidator);
     }
@@ -64,9 +61,11 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
                         )
                         .orElse(List.of());
 
-                sensorService.updateSensorsValues(valuesDto);
-
-                return new HttpResponseDto(HttpStatus.SC_OK, "", Map.of());
+                return new HttpResponseDto(
+                        HttpStatus.SC_OK,
+                        objectMapper.writeValueAsString(sensorService.updateSensorsValues(valuesDto)),
+                        Map.of()
+                );
             } catch (JsonProcessingException e) {
                 LOGGER.error("Invalid request", e);
                 throw new AppRuntimeException(ErrorCode.INVALID_REQUEST);

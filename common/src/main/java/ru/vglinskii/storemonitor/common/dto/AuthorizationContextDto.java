@@ -1,5 +1,7 @@
 package ru.vglinskii.storemonitor.common.dto;
 
+import java.util.Objects;
+
 public class AuthorizationContextDto {
     private Long storeId;
     private Long employeeId;
@@ -27,5 +29,18 @@ public class AuthorizationContextDto {
 
     public void setEmployeeId(Long employeeId) {
         this.employeeId = employeeId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AuthorizationContextDto that = (AuthorizationContextDto) o;
+        return Objects.equals(storeId, that.storeId) && Objects.equals(employeeId, that.employeeId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(storeId, employeeId);
     }
 }

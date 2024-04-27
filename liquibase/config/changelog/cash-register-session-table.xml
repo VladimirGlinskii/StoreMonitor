@@ -1,0 +1,39 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="vladimir.glinskiy99@gmail.com" id="2024-03-26T10-55-create-cash-register-session-table">
+        <createTable tableName="cash_register_session">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="closed_at" type="datetime"/>
+            <column name="cash_register_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cashier_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="cash_register_session-cash_register-idx" tableName="cash_register_session">
+            <column name="cash_register_id"/>
+        </createIndex>
+        <createIndex indexName="cash_register_session-employee-idx" tableName="cash_register_session">
+            <column name="cashier_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="cash_register_id" baseTableName="cash_register_session"
+                                 constraintName="cash_register_session-cash_register-fk" onDelete="CASCADE"
+                                 referencedColumnNames="id" referencedTableName="cash_register"/>
+        <addForeignKeyConstraint baseColumnNames="cashier_id" baseTableName="cash_register_session"
+                                 constraintName="cash_register_session-employee-fk" onDelete="CASCADE"
+                                 referencedColumnNames="id" referencedTableName="employee"/>
+    </changeSet>
+</databaseChangeLog>
