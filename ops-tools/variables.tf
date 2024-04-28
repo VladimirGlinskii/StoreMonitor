@@ -43,7 +43,7 @@ variable "base_api_image_digest" {
   default     = "sha256:4fde626b4600aa48b25ff65732751d44ee4ea7cde6ffea608bd7bb9d9ed9f580"
 }
 
-variable "functions_code_folder" {
+variable "functions_build_target_folder" {
   description = "Path to folder with functions' zip archives"
   type        = string
   default     = "../functions-build/"

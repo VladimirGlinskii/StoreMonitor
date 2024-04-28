@@ -1,0 +1,98 @@
+openapi: '3.0.0'
+info:
+  version: 0.5.0
+  title: Personal Account API
+paths:
+  /api/cash-registers/{proxy+}:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${base_api_container_id}
+        service_account_id: ${service_account_id}
+      parameters:
+        - name: proxy
+          in: path
+          explode: false
+          required: false
+          schema:
+            default: '-'
+            type: string
+          style: simple
+  /api/sensors/{proxy+}:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${base_api_container_id}
+        service_account_id: ${service_account_id}
+      parameters:
+        - name: proxy
+          in: path
+          explode: false
+          required: false
+          schema:
+            default: '-'
+            type: string
+          style: simple
+  /api/decommissioned-reports:
+    get:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${base_api_container_id}
+        service_account_id: ${service_account_id}
+      x-yc-apigateway-validator:
+        $ref: '#/components/x-yc-apigateway-validators/request-params-validator'
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+  /api/incidents:
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${create_incident_function_id}
+        service_account_id: ${service_account_id}
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${incidents_report_function_id}
+        service_account_id: ${service_account_id}
+      x-yc-apigateway-validator:
+        $ref: '#/components/x-yc-apigateway-validators/request-params-validator'
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-SECRET-KEY
+      x-yc-apigateway-authorizer:
+        type: function
+        function_id: ${auth_function_id}
+        service_account_id: ${service_account_id}
+  x-yc-apigateway-validators:
+    request-params-validator:
+      validateRequestParameters: true
+security:
+  - apiKeyAuth: []
