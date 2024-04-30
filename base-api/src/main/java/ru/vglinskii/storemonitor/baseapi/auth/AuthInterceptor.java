@@ -38,6 +38,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         boolean isValidRequest = authContext != null;
 
         if (isValidRequest) {
+            LOGGER.info("Set auth context for employee {}", authContext.getEmployeeId());
             contextHolder.setContext(authContext);
         } else {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());

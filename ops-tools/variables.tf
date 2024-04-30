@@ -40,7 +40,6 @@ variable "environment" {
 variable "base_api_image_digest" {
   description = "Hash of Base API docker image"
   type        = string
-  default     = "sha256:4fde626b4600aa48b25ff65732751d44ee4ea7cde6ffea608bd7bb9d9ed9f580"
 }
 
 variable "functions_build_target_folder" {

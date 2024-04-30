@@ -1,6 +1,13 @@
 # This file is maintained automatically by "terraform init".
 # Manual edits may be lost in future updates.
 
+provider "registry.terraform.io/hashicorp/external" {
+  version = "2.3.3"
+  hashes = [
+    "h1:uJ5vlk27Eb/E8UTm6NRzH7fSOC5D3J69/K4blLSiM/g=",
+  ]
+}
+
 provider "registry.terraform.io/hashicorp/random" {
   version     = "3.6.1"
   constraints = "> 3.3.0"

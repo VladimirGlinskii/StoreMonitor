@@ -11,14 +11,19 @@ COPY base-api/src /app/src
 
 WORKDIR /app
 RUN ./mvnw install -f ../common
-RUN ./mvnw -DskipITs install
+RUN ./mvnw -DskipTests install
 
 ENTRYPOINT [ "ls" ]
 
 FROM openjdk:21-jdk-slim-buster
+
 COPY --from=build /app/target/base-api-0.0.1-SNAPSHOT.jar /app/lib/
 COPY --from=build /app/config/application.properties /app/config/
 COPY --from=build /app/config/application-docker.properties /app/config/
+
+ARG PORT=80
+EXPOSE ${PORT}
+
 WORKDIR /app
 ENTRYPOINT ["java", "-cp", "/app/config/:/app/lib/*", "org.springframework.boot.loader.launch.JarLauncher"]
 CMD [ "--spring.profiles.active=docker" ]

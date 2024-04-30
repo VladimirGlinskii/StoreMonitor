@@ -1,5 +1,14 @@
+$ErrorActionPreference = "Stop"
+
 mvn -f ./common/pom.xml install
-mvn -f ./functions-parent/pom.xml -DskipITs install
+if ($LASTEXITCODE -ne 0) {
+  throw "Failed to build common module"
+}
+
+mvn -f ./functions-parent/pom.xml -DskipTests install
+if ($LASTEXITCODE -ne 0) {
+  throw "Failed to build cloud functions"
+}
 
 $functionNames = 'auth-function', 'cashier-simulator', 'update-sensor-value', 'sensor-simulator', 'create-incident', `
   'incidents-report-function', 'decommissioned-report-simulator'
