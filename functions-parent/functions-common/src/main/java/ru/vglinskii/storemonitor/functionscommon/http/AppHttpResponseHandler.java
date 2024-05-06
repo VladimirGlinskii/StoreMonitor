@@ -1,4 +1,4 @@
-package ru.vglinskii.storemonitor.functionscommon.api;
+package ru.vglinskii.storemonitor.functionscommon.http;
 
 import java.io.IOException;
 import org.apache.hc.core5.http.ClassicHttpResponse;

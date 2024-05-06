@@ -10,21 +10,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.vglinskii.storemonitor.functionscommon.api.HttpResponse;
+import ru.vglinskii.storemonitor.functionscommon.http.HttpResponse;
 import ru.vglinskii.storemonitor.functionscommon.dao.CommonSensorDao;
 import ru.vglinskii.storemonitor.functionscommon.dao.CommonStoreDao;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivityFactory;
 import ru.vglinskii.storemonitor.functionscommon.model.Sensor;
 import ru.vglinskii.storemonitor.functionscommon.model.Store;
 import ru.vglinskii.storemonitor.functionscommon.utils.TestContext;
-import ru.vglinskii.storemonitor.sensorsimulator.api.DevicesApi;
+import ru.vglinskii.storemonitor.sensorsimulator.serviceclient.SensorServiceClient;
 import ru.vglinskii.storemonitor.sensorsimulator.config.SensorSimulatorConfig;
 import ru.vglinskii.storemonitor.sensorsimulator.dto.UpdateSensorsValuesDtoRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class SensorSimulatorIT {
     private Handler handler;
-    private DevicesApi devicesApi;
+    private SensorServiceClient sensorServiceClient;
 
     private CommonStoreDao storeDao;
     private CommonSensorDao sensorDao;
@@ -39,10 +39,10 @@ public class SensorSimulatorIT {
                 "root",
                 "root"
         );
-        this.devicesApi = Mockito.mock(DevicesApi.class);
+        this.sensorServiceClient = Mockito.mock(SensorServiceClient.class);
         this.handler = new Handler(
                 databaseConnectivity,
-                devicesApi,
+                sensorServiceClient,
                 SensorSimulatorConfig.builder()
                         .sensorValueCelsiusMean(-3)
                         .sensorValueCelsiusStandardDeviation(3)
@@ -78,10 +78,8 @@ public class SensorSimulatorIT {
     @Test
     void handle_shouldSendUpdateValuesRequest() {
         var updateRequestCaptor = ArgumentCaptor.forClass(UpdateSensorsValuesDtoRequest.class);
-        Mockito.when(devicesApi.updateSensorsValues(updateRequestCaptor.capture()))
-                .thenReturn(
-                        new HttpResponse(HttpStatus.SC_OK, null)
-                );
+        Mockito.when(sensorServiceClient.updateSensorsValues(updateRequestCaptor.capture()))
+                .thenReturn(true);
 
         triggerSimulation();
 

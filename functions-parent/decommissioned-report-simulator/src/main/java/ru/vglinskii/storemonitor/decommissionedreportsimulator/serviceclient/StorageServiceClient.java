@@ -1,4 +1,4 @@
-package ru.vglinskii.storemonitor.decommissionedreportsimulator.api;
+package ru.vglinskii.storemonitor.decommissionedreportsimulator.serviceclient;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
@@ -12,12 +12,12 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class StorageApi {
-    private final static Logger LOGGER = LoggerFactory.getLogger(StorageApi.class);
+public class StorageServiceClient {
+    private final static Logger LOGGER = LoggerFactory.getLogger(StorageServiceClient.class);
     private AmazonS3 storageClient;
     private String bucketName;
 
-    public StorageApi(AWSCredentials credentials, String bucketName) {
+    public StorageServiceClient(AWSCredentials credentials, String bucketName) {
         this.storageClient = AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .withEndpointConfiguration(
@@ -41,7 +41,7 @@ public class StorageApi {
             storageClient.putObject(request);
         } catch (IOException | SdkClientException e) {
             LOGGER.error("Failed to upload object with key = {}", key, e);
-            throw new StorageException(e);
+            throw new StorageServiceClientException(e);
         }
     }
 }

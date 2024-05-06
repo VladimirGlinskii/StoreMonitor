@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.vglinskii.storemonitor.decommissionedreportsimulator.api.StorageApi;
+import ru.vglinskii.storemonitor.decommissionedreportsimulator.serviceclient.StorageServiceClient;
 import ru.vglinskii.storemonitor.decommissionedreportsimulator.dao.DecommissionedReportDao;
 import ru.vglinskii.storemonitor.decommissionedreportsimulator.service.CommodityService;
 import ru.vglinskii.storemonitor.functionscommon.dao.CommonStoreDao;
@@ -21,7 +21,7 @@ import ru.vglinskii.storemonitor.functionscommon.utils.TestContext;
 @ExtendWith(MockitoExtension.class)
 public class DecommissionedReportSimulatorIT {
     private Handler handler;
-    private StorageApi storageApi;
+    private StorageServiceClient storageServiceClient;
 
     private CommonStoreDao storeDao;
     private DecommissionedReportDao decommissionedReportDao;
@@ -34,10 +34,10 @@ public class DecommissionedReportSimulatorIT {
                 "root",
                 "root"
         );
-        this.storageApi = Mockito.mock(StorageApi.class);
+        this.storageServiceClient = Mockito.mock(StorageServiceClient.class);
         this.handler = new Handler(
                 databaseConnectivity,
-                storageApi,
+                storageServiceClient,
                 new CommodityService(10)
         );
         this.storeDao = new CommonStoreDao(databaseConnectivity);
@@ -68,7 +68,7 @@ public class DecommissionedReportSimulatorIT {
 
         triggerSimulation();
 
-        Mockito.verify(storageApi)
+        Mockito.verify(storageServiceClient)
                 .uploadObject(
                         storageKeyCaptor.capture(),
                         reportContentCaptor.capture()

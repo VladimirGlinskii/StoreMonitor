@@ -1,11 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-mvn -f ./common/pom.xml install
-if ($LASTEXITCODE -ne 0) {
-  throw "Failed to build common module"
-}
-
-mvn -f ./functions-parent/pom.xml -DskipTests install
+mvn -P functions -DskipTests install
 if ($LASTEXITCODE -ne 0) {
   throw "Failed to build cloud functions"
 }

@@ -1,4 +1,4 @@
-package ru.vglinskii.storemonitor.functionscommon.api;
+package ru.vglinskii.storemonitor.functionscommon.http;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

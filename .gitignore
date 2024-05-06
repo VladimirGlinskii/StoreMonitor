@@ -19,3 +19,6 @@ build/
 
 # Builded cloud functions
 functions-build/
+
+#maven
+target/

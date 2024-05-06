@@ -12,11 +12,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.vglinskii.storemonitor.cashiersimulator.api.CashRegisterApi;
+import ru.vglinskii.storemonitor.cashiersimulator.serviceclient.CashRegisterServiceClient;
 import ru.vglinskii.storemonitor.cashiersimulator.model.Cashier;
 import ru.vglinskii.storemonitor.cashiersimulator.utils.ApplicationConstants;
 import ru.vglinskii.storemonitor.common.enums.EmployeeType;
-import ru.vglinskii.storemonitor.functionscommon.api.HttpResponse;
+import ru.vglinskii.storemonitor.functionscommon.http.HttpResponse;
 import ru.vglinskii.storemonitor.functionscommon.dao.CommonCashRegisterDao;
 import ru.vglinskii.storemonitor.functionscommon.dao.CommonCashRegisterSessionDao;
 import ru.vglinskii.storemonitor.functionscommon.dao.CommonEmployeeDao;
@@ -32,7 +32,7 @@ import ru.vglinskii.storemonitor.functionscommon.utils.TestContext;
 public class CashierSimulatorIT {
     private static final Instant BASE_DATE = Instant.parse("2020-01-01T00:00:00Z");
     private Handler handler;
-    private CashRegisterApi cashRegisterApi;
+    private CashRegisterServiceClient cashRegisterServiceClient;
     private RandomGenerator randomGenerator;
     private CommonStoreDao storeDao;
     private CommonEmployeeDao employeeDao;
@@ -46,14 +46,14 @@ public class CashierSimulatorIT {
     private CashRegister cashRegister2InStore1;
 
     public CashierSimulatorIT() {
-        this.cashRegisterApi = Mockito.mock(CashRegisterApi.class);
+        this.cashRegisterServiceClient = Mockito.mock(CashRegisterServiceClient.class);
         this.randomGenerator = Mockito.mock(RandomGenerator.class);
         var databaseConnectivity = DatabaseConnectivityFactory.create(
                 "jdbc:mysql://localhost:3306/store-monitor-test",
                 "root",
                 "root"
         );
-        this.handler = new Handler(databaseConnectivity, cashRegisterApi, randomGenerator);
+        this.handler = new Handler(databaseConnectivity, cashRegisterServiceClient, randomGenerator);
         this.storeDao = new CommonStoreDao(databaseConnectivity);
         this.employeeDao = new CommonEmployeeDao(databaseConnectivity);
         this.cashRegisterDao = new CommonCashRegisterDao(databaseConnectivity);
@@ -164,7 +164,7 @@ public class CashierSimulatorIT {
 
             triggerSimulation();
 
-            Mockito.verify(cashRegisterApi, Mockito.never()).closeCashRegister(Mockito.any(), Mockito.any());
+            Mockito.verify(cashRegisterServiceClient, Mockito.never()).closeCashRegister(Mockito.any(), Mockito.any());
             Mockito.verify(randomGenerator, Mockito.never()).nextFloat(Mockito.anyFloat(), Mockito.anyFloat());
         }
     }
@@ -185,10 +185,8 @@ public class CashierSimulatorIT {
             var cashRegisterCaptor = ArgumentCaptor.forClass(CashRegister.class);
             var cashierCaptor = ArgumentCaptor.forClass(Cashier.class);
             mockedInstant.when(Instant::now).thenReturn(now);
-            Mockito.when(cashRegisterApi.openCashRegister(cashRegisterCaptor.capture(), cashierCaptor.capture()))
-                    .thenReturn(
-                            new HttpResponse(HttpStatus.SC_OK, null)
-                    );
+            Mockito.when(cashRegisterServiceClient.openCashRegister(cashRegisterCaptor.capture(), cashierCaptor.capture()))
+                    .thenReturn(true);
 
             triggerSimulation();
 
@@ -218,10 +216,8 @@ public class CashierSimulatorIT {
             var cashRegisterCaptor = ArgumentCaptor.forClass(CashRegister.class);
             var cashierCaptor = ArgumentCaptor.forClass(Cashier.class);
             mockedInstant.when(Instant::now).thenReturn(now);
-            Mockito.when(cashRegisterApi.closeCashRegister(cashRegisterCaptor.capture(), cashierCaptor.capture()))
-                    .thenReturn(
-                            new HttpResponse(HttpStatus.SC_OK, null)
-                    );
+            Mockito.when(cashRegisterServiceClient.closeCashRegister(cashRegisterCaptor.capture(), cashierCaptor.capture()))
+                    .thenReturn(true);
             Mockito.when(randomGenerator.nextFloat(Mockito.anyFloat(), Mockito.anyFloat()))
                     .thenReturn(ApplicationConstants.CLOSE_CASH_REGISTER_PROBABILITY - 0.01f);
 
@@ -256,7 +252,7 @@ public class CashierSimulatorIT {
 
             triggerSimulation();
 
-            Mockito.verify(cashRegisterApi, Mockito.never()).closeCashRegister(Mockito.any(), Mockito.any());
+            Mockito.verify(cashRegisterServiceClient, Mockito.never()).closeCashRegister(Mockito.any(), Mockito.any());
         }
     }
 

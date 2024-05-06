@@ -3,7 +3,7 @@ package ru.vglinskii.storemonitor.decommissionedreportsimulator;
 import com.amazonaws.auth.BasicAWSCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vglinskii.storemonitor.decommissionedreportsimulator.api.StorageApi;
+import ru.vglinskii.storemonitor.decommissionedreportsimulator.serviceclient.StorageServiceClient;
 import ru.vglinskii.storemonitor.decommissionedreportsimulator.config.ApplicationProperties;
 import ru.vglinskii.storemonitor.decommissionedreportsimulator.dao.DecommissionedReportDao;
 import ru.vglinskii.storemonitor.decommissionedreportsimulator.dao.StoreDao;
@@ -25,7 +25,7 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
         var properties = new ApplicationProperties();
         init(
                 DatabaseConnectivityFactory.create(properties),
-                new StorageApi(
+                new StorageServiceClient(
                         new BasicAWSCredentials(
                                 properties.getSaAccessKey(),
                                 properties.getSaSecretKey()
@@ -38,15 +38,15 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
 
     public Handler(
             DatabaseConnectivity databaseConnectivity,
-            StorageApi storageApi,
+            StorageServiceClient storageServiceClient,
             CommodityService commodityService
     ) {
-        init(databaseConnectivity, storageApi, commodityService);
+        init(databaseConnectivity, storageServiceClient, commodityService);
     }
 
     private void init(
             DatabaseConnectivity databaseConnectivity,
-            StorageApi storageApi,
+            StorageServiceClient storageServiceClient,
             CommodityService commodityService
     ) {
         this.databaseConnectivity = databaseConnectivity;
@@ -58,7 +58,7 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
         this.decommissionedReportService = new DecommissionedReportService(
                 storeDao,
                 decommissionedReportDao,
-                storageApi,
+                storageServiceClient,
                 commodityService,
                 decommissionedReportGeneratorService
         );
