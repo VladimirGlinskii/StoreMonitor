@@ -6,7 +6,7 @@
 
     <groupId>ru.vglinskii.storemonitor</groupId>
     <artifactId>liquibase</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <properties>
         <liquibase.version>4.24.0</liquibase.version>

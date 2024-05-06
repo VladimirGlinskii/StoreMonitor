@@ -4,7 +4,7 @@ import java.util.SplittableRandom;
 import java.util.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vglinskii.storemonitor.cashiersimulator.api.CashRegisterApi;
+import ru.vglinskii.storemonitor.cashiersimulator.serviceclient.CashRegisterServiceClient;
 import ru.vglinskii.storemonitor.cashiersimulator.config.ApplicationProperties;
 import ru.vglinskii.storemonitor.cashiersimulator.dao.CashRegisterDao;
 import ru.vglinskii.storemonitor.cashiersimulator.dao.CashierDao;
@@ -24,22 +24,22 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
         var properties = new ApplicationProperties();
         init(
                 DatabaseConnectivityFactory.create(properties),
-                new CashRegisterApi(properties.getBaseApiUrl()),
+                new CashRegisterServiceClient(properties.getBaseApiUrl()),
                 new SplittableRandom()
         );
     }
 
     public Handler(
             DatabaseConnectivity databaseConnectivity,
-            CashRegisterApi cashRegisterApi,
+            CashRegisterServiceClient cashRegisterServiceClient,
             RandomGenerator randomGenerator
     ) {
-        init(databaseConnectivity, cashRegisterApi, randomGenerator);
+        init(databaseConnectivity, cashRegisterServiceClient, randomGenerator);
     }
 
     private void init(
             DatabaseConnectivity databaseConnectivity,
-            CashRegisterApi cashRegisterApi,
+            CashRegisterServiceClient cashRegisterServiceClient,
             RandomGenerator randomGenerator
     ) {
         this.databaseConnectivity = databaseConnectivity;
@@ -48,7 +48,7 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
         this.workDaySimulatorService = new WorkDaySimulatorService(
                 cashierDao,
                 cashRegisterDao,
-                cashRegisterApi,
+                cashRegisterServiceClient,
                 randomGenerator
         );
     }

@@ -6,8 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vglinskii.storemonitor.decommissionedreportsimulator.api.StorageApi;
-import ru.vglinskii.storemonitor.decommissionedreportsimulator.api.StorageException;
+import ru.vglinskii.storemonitor.decommissionedreportsimulator.serviceclient.StorageServiceClient;
+import ru.vglinskii.storemonitor.decommissionedreportsimulator.serviceclient.StorageServiceClientException;
 import ru.vglinskii.storemonitor.decommissionedreportsimulator.dao.DecommissionedReportDao;
 import ru.vglinskii.storemonitor.decommissionedreportsimulator.dao.StoreDao;
 import ru.vglinskii.storemonitor.decommissionedreportsimulator.model.DecommissionedReport;
@@ -17,7 +17,7 @@ public class DecommissionedReportService {
     private final static Logger LOGGER = LoggerFactory.getLogger(DecommissionedReportService.class);
     private StoreDao storeDao;
     private DecommissionedReportDao reportDao;
-    private StorageApi storageApi;
+    private StorageServiceClient storageServiceClient;
     private CommodityService commodityService;
     private DecommissionedReportGeneratorService reportGeneratorService;
     private DateTimeFormatter objectDateFormatter;
@@ -25,13 +25,13 @@ public class DecommissionedReportService {
     public DecommissionedReportService(
             StoreDao storeDao,
             DecommissionedReportDao reportDao,
-            StorageApi storageApi,
+            StorageServiceClient storageServiceClient,
             CommodityService commodityService,
             DecommissionedReportGeneratorService reportGeneratorService
     ) {
         this.storeDao = storeDao;
         this.reportDao = reportDao;
-        this.storageApi = storageApi;
+        this.storageServiceClient = storageServiceClient;
         this.commodityService = commodityService;
         this.reportGeneratorService = reportGeneratorService;
         this.objectDateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
@@ -59,9 +59,9 @@ public class DecommissionedReportService {
     private void uploadReportObject(DecommissionedReport reportEntity, byte[] reportContent) {
         try {
             LOGGER.info("Uploading report object {} for store {}", reportEntity.getLink(), reportEntity.getStoreId());
-            storageApi.uploadObject(reportEntity.getLink(), reportContent);
+            storageServiceClient.uploadObject(reportEntity.getLink(), reportContent);
             LOGGER.info("Uploaded report object {} for store {}", reportEntity.getLink(), reportEntity.getStoreId());
-        } catch (StorageException e) {
+        } catch (StorageServiceClientException e) {
             LOGGER.error("Failed to upload report object {} for store {}", reportEntity.getLink(), reportEntity.getStoreId(), e);
 
             throw e;

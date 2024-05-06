@@ -9,7 +9,7 @@ import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vglinskii.storemonitor.cashiersimulator.api.CashRegisterApi;
+import ru.vglinskii.storemonitor.cashiersimulator.serviceclient.CashRegisterServiceClient;
 import ru.vglinskii.storemonitor.cashiersimulator.dao.CashRegisterDao;
 import ru.vglinskii.storemonitor.cashiersimulator.dao.CashierDao;
 import ru.vglinskii.storemonitor.cashiersimulator.model.Cashier;
@@ -21,18 +21,18 @@ public class WorkDaySimulatorService {
     private final static Logger LOGGER = LoggerFactory.getLogger(WorkDaySimulatorService.class);
     private CashierDao cashierDao;
     private CashRegisterDao cashRegisterDao;
-    private CashRegisterApi cashRegisterApi;
+    private CashRegisterServiceClient cashRegisterServiceClient;
     private RandomGenerator randomGenerator;
 
     public WorkDaySimulatorService(
             CashierDao cashierDao,
             CashRegisterDao cashRegisterDao,
-            CashRegisterApi cashRegisterApi,
+            CashRegisterServiceClient cashRegisterServiceClient,
             RandomGenerator randomGenerator
     ) {
         this.cashierDao = cashierDao;
         this.cashRegisterDao = cashRegisterDao;
-        this.cashRegisterApi = cashRegisterApi;
+        this.cashRegisterServiceClient = cashRegisterServiceClient;
         this.randomGenerator = randomGenerator;
     }
 
@@ -94,8 +94,8 @@ public class WorkDaySimulatorService {
 
     private void openCashRegister(CashRegister cashRegister, Cashier currentCashier, Cashier newCashier) {
         LOGGER.info("Opening cash register {} by cashier {}", cashRegister.getId(), newCashier.getId());
-        var response = cashRegisterApi.openCashRegister(cashRegister, newCashier);
-        if (response.is2xxSuccessful()) {
+        var isOpened = cashRegisterServiceClient.openCashRegister(cashRegister, newCashier);
+        if (isOpened) {
             LOGGER.info("Cash register {} opened", cashRegister.getId());
             newCashier.setFree(false);
             if (currentCashier != null) {
@@ -108,8 +108,8 @@ public class WorkDaySimulatorService {
 
     private void closeCashRegister(CashRegister cashRegister, Cashier currentCashier) {
         LOGGER.info("Closing cash register {} by cashier {}", cashRegister.getId(), currentCashier.getId());
-        var response = cashRegisterApi.closeCashRegister(cashRegister, currentCashier);
-        if (response.is2xxSuccessful()) {
+        var isClosed = cashRegisterServiceClient.closeCashRegister(cashRegister, currentCashier);
+        if (isClosed) {
             LOGGER.info("Cash register {} closed", cashRegister.getId());
             currentCashier.setFree(true);
         } else {

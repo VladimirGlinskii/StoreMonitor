@@ -7,7 +7,7 @@ import org.apache.commons.statistics.distribution.NormalDistribution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.common.enums.SensorUnit;
-import ru.vglinskii.storemonitor.sensorsimulator.api.DevicesApi;
+import ru.vglinskii.storemonitor.sensorsimulator.serviceclient.SensorServiceClient;
 import ru.vglinskii.storemonitor.sensorsimulator.config.SensorSimulatorConfig;
 import ru.vglinskii.storemonitor.sensorsimulator.dao.SensorDao;
 import ru.vglinskii.storemonitor.sensorsimulator.dto.UpdateSensorValueDtoRequest;
@@ -16,16 +16,16 @@ import ru.vglinskii.storemonitor.sensorsimulator.dto.UpdateSensorsValuesDtoReque
 public class SensorSimulatorService {
     private final static Logger LOGGER = LoggerFactory.getLogger(SensorSimulatorService.class);
     private SensorDao sensorDao;
-    private DevicesApi devicesApi;
+    private SensorServiceClient sensorServiceClient;
     private ContinuousDistribution.Sampler celsiusValueSampler;
 
     public SensorSimulatorService(
             SensorDao sensorDao,
-            DevicesApi devicesApi,
+            SensorServiceClient sensorServiceClient,
             SensorSimulatorConfig config
     ) {
         this.sensorDao = sensorDao;
-        this.devicesApi = devicesApi;
+        this.sensorServiceClient = sensorServiceClient;
         this.celsiusValueSampler = NormalDistribution
                 .of(
                         config.getSensorValueCelsiusMean(),
@@ -48,13 +48,13 @@ public class SensorSimulatorService {
             );
         }
 
-        LOGGER.info("Sending request to update sensors values");
-        var response = devicesApi.updateSensorsValues(new UpdateSensorsValuesDtoRequest(updateRequestDtos));
+        LOGGER.info("Updating sensors' values...");
+        var isSuccess = sensorServiceClient.updateSensorsValues(new UpdateSensorsValuesDtoRequest(updateRequestDtos));
 
-        if (response.is2xxSuccessful()) {
-            LOGGER.info("Update sensors values request sent");
+        if (isSuccess) {
+            LOGGER.info("Sensors' values successfully updated");
         } else {
-            LOGGER.error("Update sensors values request failed");
+            LOGGER.error("Failed to update sensors' values");
         }
     }
 }

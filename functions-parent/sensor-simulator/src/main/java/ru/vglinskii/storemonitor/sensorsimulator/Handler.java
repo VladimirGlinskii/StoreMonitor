@@ -6,7 +6,7 @@ import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivity;
 import ru.vglinskii.storemonitor.functionscommon.database.DatabaseConnectivityFactory;
 import ru.vglinskii.storemonitor.functionscommon.dto.TriggerRequestDto;
 import ru.vglinskii.storemonitor.functionscommon.utils.serialization.AppObjectMapper;
-import ru.vglinskii.storemonitor.sensorsimulator.api.DevicesApi;
+import ru.vglinskii.storemonitor.sensorsimulator.serviceclient.SensorServiceClient;
 import ru.vglinskii.storemonitor.sensorsimulator.config.ApplicationProperties;
 import ru.vglinskii.storemonitor.sensorsimulator.config.SensorSimulatorConfig;
 import ru.vglinskii.storemonitor.sensorsimulator.dao.SensorDao;
@@ -24,7 +24,7 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
         var objectMapper = new AppObjectMapper();
         init(
                 DatabaseConnectivityFactory.create(properties),
-                new DevicesApi(
+                new SensorServiceClient(
                         objectMapper,
                         properties.getDevicesApiUrl()
                 ),
@@ -37,15 +37,15 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
 
     public Handler(
             DatabaseConnectivity databaseConnectivity,
-            DevicesApi devicesApi,
+            SensorServiceClient sensorServiceClient,
             SensorSimulatorConfig simulatorConfig
     ) {
-        init(databaseConnectivity, devicesApi, simulatorConfig);
+        init(databaseConnectivity, sensorServiceClient, simulatorConfig);
     }
 
     public void init(
             DatabaseConnectivity databaseConnectivity,
-            DevicesApi devicesApi,
+            SensorServiceClient sensorServiceClient,
             SensorSimulatorConfig simulatorConfig
     ) {
         this.databaseConnectivity = databaseConnectivity;
@@ -54,7 +54,7 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
 
         this.sensorSimulatorService = new SensorSimulatorService(
                 sensorDao,
-                devicesApi,
+                sensorServiceClient,
                 simulatorConfig
         );
     }
