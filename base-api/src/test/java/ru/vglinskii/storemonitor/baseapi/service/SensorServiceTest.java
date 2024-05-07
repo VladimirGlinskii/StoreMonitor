@@ -8,15 +8,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorValueDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorWithValueDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.mapper.SensorValueMapper;
+import ru.vglinskii.storemonitor.baseapi.mapper.SensorValueMapperImpl;
 import ru.vglinskii.storemonitor.baseapi.repository.SensorValueRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class SensorServiceTest extends ServiceTestBase {
     @Mock
     private SensorValueRepository sensorValueRepository;
+    @Spy
+    private SensorValueMapper sensorValueMapper = new SensorValueMapperImpl();
     @InjectMocks
     private SensorService sensorService;
 
@@ -32,30 +37,8 @@ public class SensorServiceTest extends ServiceTestBase {
         var sensor1Value = testDataGenerator.createSensorValue(1, sensor1, Instant.now());
         var sensor2Value = testDataGenerator.createSensorValue(2, sensor2, Instant.now());
         var expectedResponse = List.of(
-                SensorWithValueDtoResponse.builder()
-                        .id(sensor1.getId())
-                        .inventoryNumber(sensor1.getInventoryNumber())
-                        .factoryCode(sensor1.getFactoryCode())
-                        .location(sensor1.getLocation())
-                        .value(SensorValueDtoResponse.builder()
-                                .datetime(sensor1Value.getDatetime())
-                                .unit(sensor1Value.getUnit())
-                                .value(sensor1Value.getValue())
-                                .build()
-                        )
-                        .build(),
-                SensorWithValueDtoResponse.builder()
-                        .id(sensor2.getId())
-                        .inventoryNumber(sensor2.getInventoryNumber())
-                        .factoryCode(sensor2.getFactoryCode())
-                        .location(sensor2.getLocation())
-                        .value(SensorValueDtoResponse.builder()
-                                .datetime(sensor2Value.getDatetime())
-                                .unit(sensor2Value.getUnit())
-                                .value(sensor2Value.getValue())
-                                .build()
-                        )
-                        .build()
+                sensorValueMapper.toSensorWithValueDto(sensor1Value),
+                sensorValueMapper.toSensorWithValueDto(sensor2Value)
         );
 
         Mockito.when(sensorValueRepository.findLastForSensorsByStoreId(testStore.getId()))
