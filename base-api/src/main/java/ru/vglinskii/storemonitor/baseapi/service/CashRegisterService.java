@@ -15,6 +15,7 @@ import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersWorkSumma
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.exception.AppRuntimeException;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
+import ru.vglinskii.storemonitor.baseapi.mapper.CashRegisterMapper;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
 import ru.vglinskii.storemonitor.baseapi.repository.CashRegisterRepository;
@@ -31,19 +32,22 @@ public class CashRegisterService {
     private final EmployeeRepository employeeRepository;
     private final CashRegisterSessionRepository cashRegisterSessionRepository;
     private final AuthorizationContextHolder authorizationContextHolder;
+    private final CashRegisterMapper cashRegisterMapper;
 
     public CashRegisterService(
             CashRegisterRepository cashRegisterRepository,
             StoreRepository storeRepository,
             EmployeeRepository employeeRepository,
             CashRegisterSessionRepository cashRegisterSessionRepository,
-            AuthorizationContextHolder authorizationContextHolder
+            AuthorizationContextHolder authorizationContextHolder,
+            CashRegisterMapper cashRegisterMapper
     ) {
         this.cashRegisterRepository = cashRegisterRepository;
         this.storeRepository = storeRepository;
         this.employeeRepository = employeeRepository;
         this.cashRegisterSessionRepository = cashRegisterSessionRepository;
         this.authorizationContextHolder = authorizationContextHolder;
+        this.cashRegisterMapper = cashRegisterMapper;
     }
 
     public CashRegisterDtoResponse create(CreateCashRegisterDtoRequest request) {
@@ -67,13 +71,7 @@ public class CashRegisterService {
 
         log.info("Created cash register {} in store {}", cashRegister.getId(), storeId);
 
-        return CashRegisterDtoResponse.builder()
-                .id(cashRegister.getId())
-                .createdAt(cashRegister.getCreatedAt())
-                .updatedAt(cashRegister.getUpdatedAt())
-                .opened(false)
-                .inventoryNumber(cashRegister.getInventoryNumber())
-                .build();
+        return cashRegisterMapper.toRegisterDto(cashRegister);
     }
 
     public void delete(long id) {
@@ -158,12 +156,7 @@ public class CashRegisterService {
 
         return cashRegisterRepository.findWithLastSessionByStoreId(storeId)
                 .stream()
-                .map((cr) -> CashRegisterStatusDtoResponse.builder()
-                        .id(cr.getId())
-                        .inventoryNumber(cr.getInventoryNumber())
-                        .opened(cr.getOpenedAt() != null && cr.getClosedAt() == null)
-                        .build()
-                )
+                .map(cashRegisterMapper::toRegisterStatusDto)
                 .collect(Collectors.toList());
     }
 

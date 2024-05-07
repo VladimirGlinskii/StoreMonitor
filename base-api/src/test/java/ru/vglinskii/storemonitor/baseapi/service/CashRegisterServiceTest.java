@@ -15,12 +15,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterStatusDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.exception.AppRuntimeException;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
+import ru.vglinskii.storemonitor.baseapi.mapper.CashRegisterMapper;
+import ru.vglinskii.storemonitor.baseapi.mapper.CashRegisterMapperImpl;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
 import ru.vglinskii.storemonitor.baseapi.projection.CashRegisterStatusProjection;
 import ru.vglinskii.storemonitor.baseapi.projection.CashRegisterStatusProjectionTestImpl;
@@ -40,6 +42,8 @@ public class CashRegisterServiceTest extends ServiceTestBase {
     private EmployeeRepository employeeRepository;
     @Mock
     private CashRegisterSessionRepository cashRegisterSessionRepository;
+    @Spy
+    private CashRegisterMapper cashRegisterMapper = new CashRegisterMapperImpl();
     @InjectMocks
     private CashRegisterService cashRegisterService;
 
@@ -54,13 +58,7 @@ public class CashRegisterServiceTest extends ServiceTestBase {
         var request = CreateCashRegisterDtoRequest.builder()
                 .inventoryNumber(expectedCashRegister.getInventoryNumber())
                 .build();
-        var expectedResponse = CashRegisterDtoResponse.builder()
-                .id(expectedCashRegister.getId())
-                .inventoryNumber(expectedCashRegister.getInventoryNumber())
-                .opened(false)
-                .createdAt(expectedCashRegister.getCreatedAt())
-                .updatedAt(expectedCashRegister.getUpdatedAt())
-                .build();
+        var expectedResponse = cashRegisterMapper.toRegisterDto(expectedCashRegister);
 
         Mockito.when(storeRepository.getReferenceById(testStore.getId()))
                 .thenReturn(testStore);
@@ -140,7 +138,8 @@ public class CashRegisterServiceTest extends ServiceTestBase {
         cashRegisterService.openSession(cashRegister.getId());
 
         var sessionCaptor = ArgumentCaptor.forClass(CashRegisterSession.class);
-        Mockito.verify(cashRegisterSessionRepository, Mockito.times(1)).save(sessionCaptor.capture());
+        Mockito.verify(cashRegisterSessionRepository, Mockito.times(1))
+                .save(sessionCaptor.capture());
         var savedSession = sessionCaptor.getValue();
 
         Assertions.assertEquals(expectedSessionId, savedSession.getId());

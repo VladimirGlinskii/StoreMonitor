@@ -47,14 +47,14 @@ public class Incident {
     private Instant datetime;
 
     @Column(name = "called_police", nullable = false)
-    private boolean calledPolice = false;
+    private boolean calledPolice;
 
     @Column(name = "called_ambulance", nullable = false)
-    private boolean calledAmbulance = false;
+    private boolean calledAmbulance;
 
     @Column(name = "called_fire_department", nullable = false)
-    private boolean calledFireDepartment = false;
+    private boolean calledFireDepartment;
 
     @Column(name = "called_gas_service", nullable = false)
-    private boolean calledGasService = false;
+    private boolean calledGasService;
 }
