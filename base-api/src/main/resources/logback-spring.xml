@@ -1,7 +1,9 @@
 <configuration>
     <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg - employeeId=%X{employeeId}
+                storeId=%X{storeId}%n
+            </pattern>
         </encoder>
         <springProfile name="docker">
             <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
@@ -10,5 +12,5 @@
     <root level="INFO">
         <appender-ref ref="jsonConsoleAppender"/>
     </root>
-    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
 </configuration>

@@ -38,6 +38,7 @@ public class GlobalExceptionHandler {
     }
 
     public HttpResponseDto handleAppRuntimeException(AppRuntimeException e) {
+        LOGGER.info("App runtime exception:", e);
         try {
             return new HttpResponseDto(
                     e.getErrorCode().getHttpStatus(),
@@ -52,6 +53,7 @@ public class GlobalExceptionHandler {
     }
 
     public HttpResponseDto handleValidationExceptions(ConstraintViolationException e) {
+        LOGGER.info("Validation exception:", e);
         List<ErrorDtoResponse> errors = new ArrayList<>();
 
         e.getConstraintViolations().forEach((error) -> {
@@ -79,8 +81,6 @@ public class GlobalExceptionHandler {
 
     public HttpResponseDto handleUnknownException(Throwable e) {
         LOGGER.error("Internal server error", e);
-
-
         try {
             return new HttpResponseDto(
                     HttpStatus.SC_INTERNAL_SERVER_ERROR,

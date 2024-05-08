@@ -21,6 +21,7 @@ import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
 public class GlobalControllerExceptionHandler {
     @ExceptionHandler(value = {AppRuntimeException.class})
     public ResponseEntity<ErrorsDtoResponse> handleAppRuntimeException(AppRuntimeException e) {
+        log.info("App runtime exception:", e);
         return new ResponseEntity<>(
                 new ErrorsDtoResponse(new ErrorDtoResponse(e.getErrorCode())),
                 e.getErrorCode().getHttpStatus()
@@ -29,7 +30,9 @@ public class GlobalControllerExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorsDtoResponse> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
+            MethodArgumentNotValidException ex
+    ) {
+        log.info("Validation exception:", ex);
         List<ErrorDtoResponse> errors = new ArrayList<>();
 
         ex.getBindingResult().getAllErrors().forEach((error) -> {
@@ -49,6 +52,7 @@ public class GlobalControllerExceptionHandler {
     public ResponseEntity<ErrorsDtoResponse> handleValidationExceptions(
             MissingServletRequestParameterException ex
     ) {
+        log.info("Validation exception:", ex);
         return new ResponseEntity<>(
                 new ErrorsDtoResponse(new ErrorDtoResponse(
                         ErrorCode.QUERY_PARAMETER_REQUIRED,
@@ -63,6 +67,7 @@ public class GlobalControllerExceptionHandler {
     public ResponseEntity<ErrorsDtoResponse> handleValidationExceptions(
             MethodArgumentTypeMismatchException ex
     ) {
+        log.info("Validation exception:", ex);
         return new ResponseEntity<>(
                 new ErrorsDtoResponse(new ErrorDtoResponse(
                         ErrorCode.QUERY_PARAMETER_INVALID,

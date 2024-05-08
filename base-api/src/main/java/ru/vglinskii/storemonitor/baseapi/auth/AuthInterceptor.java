@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -40,6 +41,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (isValidRequest) {
             LOGGER.info("Set auth context for employee {}", authContext.getEmployeeId());
             contextHolder.setContext(authContext);
+            MDC.put("employeeId", String.valueOf(authContext.getEmployeeId()));
+            MDC.put("storeId", String.valueOf(authContext.getStoreId()));
         } else {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
         }
