@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Import;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorsDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorsWithValuesDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
 import ru.vglinskii.storemonitor.baseapi.service.SensorService;
 import ru.vglinskii.storemonitor.baseapi.utils.SensorTestApi;
@@ -38,7 +39,7 @@ public class SensorControllerTest extends ControllerTestBase {
         var to = Instant.now();
 
         Mockito.when(sensorService.getTemperatureReport(from, to))
-                .thenReturn(List.of());
+                .thenReturn(new SensorsWithValuesDtoResponse());
 
         sensorTestApi.getTemperatureReport(testDirector, from.toString(), to.toString())
                 .andExpect(status().is2xxSuccessful());

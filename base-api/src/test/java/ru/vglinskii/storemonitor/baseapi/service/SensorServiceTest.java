@@ -10,8 +10,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorValueDtoResponse;
-import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorWithValueDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorsWithValueDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.mapper.SensorValueMapper;
 import ru.vglinskii.storemonitor.baseapi.mapper.SensorValueMapperImpl;
 import ru.vglinskii.storemonitor.baseapi.repository.SensorValueRepository;
@@ -36,9 +35,12 @@ public class SensorServiceTest extends ServiceTestBase {
         var sensor2 = testDataGenerator.createSensor(2, testStore);
         var sensor1Value = testDataGenerator.createSensorValue(1, sensor1, Instant.now());
         var sensor2Value = testDataGenerator.createSensorValue(2, sensor2, Instant.now());
-        var expectedResponse = List.of(
-                sensorValueMapper.toSensorWithValueDto(sensor1Value),
-                sensorValueMapper.toSensorWithValueDto(sensor2Value)
+        var expectedResponse = new SensorsWithValueDtoResponse(
+                List.of(
+                        sensorValueMapper.toSensorWithValueDto(sensor1Value),
+                        sensorValueMapper.toSensorWithValueDto(sensor2Value)
+
+                )
         );
 
         Mockito.when(sensorValueRepository.findLastForSensorsByStoreId(testStore.getId()))

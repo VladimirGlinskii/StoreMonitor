@@ -1,12 +1,11 @@
 package ru.vglinskii.storemonitor.baseapi.service;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.vglinskii.storemonitor.baseapi.auth.AuthorizationContextHolder;
-import ru.vglinskii.storemonitor.baseapi.dto.decommissionedreport.DecommissionedReportDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.decommissionedreport.DecommissionedReportsDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.mapper.DecommissionedReportMapper;
 import ru.vglinskii.storemonitor.baseapi.repository.DecommissionedReportRepository;
 
@@ -26,11 +25,13 @@ public class DecommissionedReportService {
         this.decommissionedReportMapper = decommissionedReportMapper;
     }
 
-    public List<DecommissionedReportDtoResponse> getAll(Instant from, Instant to) {
+    public DecommissionedReportsDtoResponse getAll(Instant from, Instant to) {
         var storeId = authorizationContextHolder.getContext().getStoreId();
         log.info("Received get all decommissioned reports request for store {}", storeId);
-        return decommissionedReportRepository.findByStoreIdInInterval(storeId, from, to).stream()
-                .map(decommissionedReportMapper::toReportDto)
-                .collect(Collectors.toList());
+        return new DecommissionedReportsDtoResponse(
+                decommissionedReportRepository.findByStoreIdInInterval(storeId, from, to).stream()
+                        .map(decommissionedReportMapper::toReportDto)
+                        .toList()
+        );
     }
 }

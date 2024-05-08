@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +66,7 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
                 return new HttpResponseDto(
                         HttpStatus.SC_OK,
                         objectMapper.writeValueAsString(sensorService.updateSensorsValues(valuesDto)),
-                        Map.of()
+                        Map.ofEntries(Map.entry(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType()))
                 );
             } catch (JsonProcessingException e) {
                 LOGGER.error("Invalid request", e);

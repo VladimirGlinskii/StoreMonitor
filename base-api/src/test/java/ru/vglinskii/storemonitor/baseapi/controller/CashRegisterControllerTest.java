@@ -3,7 +3,6 @@ package ru.vglinskii.storemonitor.baseapi.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
@@ -21,6 +20,7 @@ import ru.vglinskii.storemonitor.baseapi.dto.ErrorDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorsDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterStatusDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersStatusesDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersWorkSummaryDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
@@ -152,12 +152,14 @@ public class CashRegisterControllerTest extends ControllerTestBase {
 
     @Test
     void getStatuses_shouldSuccess() throws Exception {
-        var expectedResponse = List.of(
-                CashRegisterStatusDtoResponse.builder()
-                        .id(10)
-                        .inventoryNumber("00000010")
-                        .opened(true)
-                        .build()
+        var expectedResponse = new CashRegistersStatusesDtoResponse(
+                List.of(
+                        CashRegisterStatusDtoResponse.builder()
+                                .id(10)
+                                .inventoryNumber("00000010")
+                                .opened(true)
+                                .build()
+                )
         );
 
         Mockito.when(cashRegisterService.getStatuses())
@@ -169,11 +171,10 @@ public class CashRegisterControllerTest extends ControllerTestBase {
                         .andReturn()
                         .getResponse()
                         .getContentAsString(),
-                CashRegisterStatusDtoResponse[].class
+                CashRegistersStatusesDtoResponse.class
         );
 
-        Assertions.assertEquals(expectedResponse.size(), response.length);
-        Assertions.assertTrue(expectedResponse.containsAll(Arrays.asList(response)));
+        Assertions.assertEquals(expectedResponse, response);
     }
 
     @Test

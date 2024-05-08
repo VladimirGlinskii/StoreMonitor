@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.Map;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +61,7 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
                 return new HttpResponseDto(
                         HttpStatus.SC_OK,
                         objectMapper.writeValueAsString(reportDto),
-                        Map.of()
+                        Map.ofEntries(Map.entry(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType()))
                 );
             } catch (JsonProcessingException e) {
                 LOGGER.error("Invalid request", e);

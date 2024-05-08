@@ -1,12 +1,11 @@
 package ru.vglinskii.storemonitor.baseapi.controller;
 
 import java.time.Instant;
-import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.vglinskii.storemonitor.baseapi.dto.decommissionedreport.DecommissionedReportDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.decommissionedreport.DecommissionedReportsDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.service.DecommissionedReportService;
 
 @RestController
@@ -19,7 +18,7 @@ public class DecommissionedReportController {
     }
 
     @GetMapping
-    public List<DecommissionedReportDtoResponse> getAll(
+    public DecommissionedReportsDtoResponse getAll(
             @RequestParam() Instant from,
             @RequestParam() Instant to
     ) {

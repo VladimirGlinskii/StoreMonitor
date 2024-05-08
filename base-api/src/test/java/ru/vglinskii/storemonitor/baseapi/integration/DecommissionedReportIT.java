@@ -20,6 +20,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.vglinskii.storemonitor.baseapi.dto.decommissionedreport.DecommissionedReportDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.decommissionedreport.DecommissionedReportsDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.model.DecommissionedReport;
 import ru.vglinskii.storemonitor.baseapi.model.Employee;
 import ru.vglinskii.storemonitor.baseapi.model.Store;
@@ -147,26 +148,28 @@ public class DecommissionedReportIT extends IntegrationTestBase {
             Instant to,
             List<Integer> expectedReportsIndexes
     ) {
-        var expectedResponse = expectedReportsIndexes.stream()
-                .map((i) -> reportsInStore1.get(i))
-                .map((r) -> DecommissionedReportDtoResponse.builder()
-                        .link(r.getLink())
-                        .datetime(r.getCreatedAt())
-                        .build()
-                )
-                .toArray();
+        var expectedResponse = new DecommissionedReportsDtoResponse(
+                expectedReportsIndexes.stream()
+                        .map((i) -> reportsInStore1.get(i))
+                        .map((r) -> DecommissionedReportDtoResponse.builder()
+                                .link(r.getLink())
+                                .datetime(r.getCreatedAt())
+                                .build()
+                        )
+                        .toList()
+        );
 
         var response = restTemplate.exchange(
                 API_URL_TEMPLATE,
                 HttpMethod.GET,
                 new HttpEntity<>(createAuthorizationHeader(directorFromStore1)),
-                DecommissionedReportDtoResponse[].class,
+                DecommissionedReportsDtoResponse.class,
                 prepareParams(from, to)
         );
         var responseBody = response.getBody();
 
         Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
-        Assertions.assertArrayEquals(expectedResponse, responseBody);
+        Assertions.assertEquals(expectedResponse, responseBody);
     }
 
     @Test
@@ -175,7 +178,7 @@ public class DecommissionedReportIT extends IntegrationTestBase {
                 API_URL_TEMPLATE,
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                DecommissionedReportDtoResponse[].class,
+                DecommissionedReportsDtoResponse.class,
                 prepareParams(BASE_DATE, BASE_DATE.plus(1, ChronoUnit.DAYS))
         );
         Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());

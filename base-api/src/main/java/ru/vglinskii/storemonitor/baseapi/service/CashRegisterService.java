@@ -2,7 +2,6 @@ package ru.vglinskii.storemonitor.baseapi.service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vglinskii.storemonitor.baseapi.auth.AuthorizationContextHolder;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterDtoResponse;
-import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterStatusDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersStatusesDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersWorkSummaryDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.exception.AppRuntimeException;
@@ -150,14 +149,16 @@ public class CashRegisterService {
         );
     }
 
-    public List<CashRegisterStatusDtoResponse> getStatuses() {
+    public CashRegistersStatusesDtoResponse getStatuses() {
         var storeId = authorizationContextHolder.getContext().getStoreId();
         log.info("Received get cash registers statuses request for store {}", storeId);
 
-        return cashRegisterRepository.findWithLastSessionByStoreId(storeId)
-                .stream()
-                .map(cashRegisterMapper::toRegisterStatusDto)
-                .collect(Collectors.toList());
+        return new CashRegistersStatusesDtoResponse(
+                cashRegisterRepository.findWithLastSessionByStoreId(storeId)
+                        .stream()
+                        .map(cashRegisterMapper::toRegisterStatusDto)
+                        .toList()
+        );
     }
 
     public CashRegistersWorkSummaryDtoResponse getWorkSummary(

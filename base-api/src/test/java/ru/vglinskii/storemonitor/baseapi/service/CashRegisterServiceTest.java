@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterStatusDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersStatusesDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.exception.AppRuntimeException;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
@@ -324,10 +325,12 @@ public class CashRegisterServiceTest extends ServiceTestBase {
                 new CashRegisterStatusProjectionTestImpl(1, "1", Instant.now(), Instant.now()),
                 new CashRegisterStatusProjectionTestImpl(1, "1", null, null)
         );
-        var expectedResponse = List.of(
-                new CashRegisterStatusDtoResponse(1, "1", true),
-                new CashRegisterStatusDtoResponse(1, "1", false),
-                new CashRegisterStatusDtoResponse(1, "1", false)
+        var expectedResponse = new CashRegistersStatusesDtoResponse(
+                List.of(
+                        new CashRegisterStatusDtoResponse(1, "1", true),
+                        new CashRegisterStatusDtoResponse(1, "1", false),
+                        new CashRegisterStatusDtoResponse(1, "1", false)
+                )
         );
 
         Mockito.when(cashRegisterRepository.findWithLastSessionByStoreId(testStore.getId()))

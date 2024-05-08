@@ -1,7 +1,6 @@
 package ru.vglinskii.storemonitor.updatesensorvalue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.apache.hc.core5.http.HttpStatus;
@@ -21,7 +20,7 @@ import ru.vglinskii.storemonitor.functionscommon.model.Sensor;
 import ru.vglinskii.storemonitor.functionscommon.model.Store;
 import ru.vglinskii.storemonitor.functionscommon.utils.TestContext;
 import ru.vglinskii.storemonitor.functionscommon.utils.serialization.AppObjectMapper;
-import ru.vglinskii.storemonitor.updatesensorvalue.dto.SensorValueDtoResponse;
+import ru.vglinskii.storemonitor.updatesensorvalue.dto.SensorsValuesDtoResponse;
 import ru.vglinskii.storemonitor.updatesensorvalue.dto.UpdateSensorValueDtoRequest;
 import ru.vglinskii.storemonitor.updatesensorvalue.dto.UpdateSensorsValuesDtoRequest;
 
@@ -86,10 +85,10 @@ public class UpdateSensorValueIT {
         var response = sendRequest(objectMapper.writeValueAsString(requestBody));
         Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
 
-        var responseBody = objectMapper.readValue(response.getBody(), SensorValueDtoResponse[].class);
+        var responseBody = objectMapper.readValue(response.getBody(), SensorsValuesDtoResponse.class);
 
-        Assertions.assertEquals(2, responseBody.length);
-        Assertions.assertTrue(Arrays.stream(responseBody).allMatch((v) -> v.getId() > 0));
+        Assertions.assertEquals(2, responseBody.getValues().size());
+        Assertions.assertTrue(responseBody.getValues().stream().allMatch((v) -> v.getId() > 0));
     }
 
     private static Stream<Arguments> getInvalidUpdateValueRequests() {
@@ -122,9 +121,9 @@ public class UpdateSensorValueIT {
         var response = sendRequest(objectMapper.writeValueAsString(requestBody));
         Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
 
-        var responseBody = objectMapper.readValue(response.getBody(), SensorValueDtoResponse[].class);
+        var responseBody = objectMapper.readValue(response.getBody(), SensorsValuesDtoResponse.class);
 
-        Assertions.assertEquals(0, responseBody.length);
+        Assertions.assertEquals(0, responseBody.getValues().size());
     }
 
     private HttpResponseDto sendRequest(String requestBody) {

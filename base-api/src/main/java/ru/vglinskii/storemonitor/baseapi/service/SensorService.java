@@ -1,13 +1,12 @@
 package ru.vglinskii.storemonitor.baseapi.service;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.vglinskii.storemonitor.baseapi.auth.AuthorizationContextHolder;
-import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorWithValueDtoResponse;
-import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorWithValuesDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorsWithValueDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorsWithValuesDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.mapper.SensorValueMapper;
 import ru.vglinskii.storemonitor.baseapi.repository.SensorValueRepository;
 
@@ -27,17 +26,19 @@ public class SensorService {
         this.sensorValueMapper = sensorValueMapper;
     }
 
-    public List<SensorWithValueDtoResponse> getSensorsWithCurrentValue() {
+    public SensorsWithValueDtoResponse getSensorsWithCurrentValue() {
         var storeId = authorizationContextHolder.getContext().getStoreId();
         var lastSensorsValues = sensorValueRepository.findLastForSensorsByStoreId(storeId);
         log.info("Received get sensors request for store {}", storeId);
 
-        return lastSensorsValues.stream()
-                .map(sensorValueMapper::toSensorWithValueDto)
-                .toList();
+        return new SensorsWithValueDtoResponse(
+                lastSensorsValues.stream()
+                        .map(sensorValueMapper::toSensorWithValueDto)
+                        .toList()
+        );
     }
 
-    public List<SensorWithValuesDtoResponse> getTemperatureReport(
+    public SensorsWithValuesDtoResponse getTemperatureReport(
             Instant from,
             Instant rawTo
     ) {
@@ -49,11 +50,13 @@ public class SensorService {
                 .stream()
                 .collect(Collectors.groupingBy((sv) -> sv.getSensor().getId()));
 
-        return sensorIdToValuesMap.values().stream()
-                .map(values -> sensorValueMapper.toSensorWithValuesDto(
-                        values,
-                        values.get(0).getSensor()
-                ))
-                .toList();
+        return new SensorsWithValuesDtoResponse(
+                sensorIdToValuesMap.values().stream()
+                        .map(values -> sensorValueMapper.toSensorWithValuesDto(
+                                values,
+                                values.get(0).getSensor()
+                        ))
+                        .toList()
+        );
     }
 }

@@ -10,6 +10,7 @@ import ru.vglinskii.storemonitor.functionscommon.dao.CommonSensorValueDao;
 import ru.vglinskii.storemonitor.functionscommon.model.SensorValue;
 import ru.vglinskii.storemonitor.functionscommon.utils.BeanValidator;
 import ru.vglinskii.storemonitor.updatesensorvalue.dto.SensorValueDtoResponse;
+import ru.vglinskii.storemonitor.updatesensorvalue.dto.SensorsValuesDtoResponse;
 import ru.vglinskii.storemonitor.updatesensorvalue.dto.UpdateSensorValueDtoRequest;
 
 public class SensorService {
@@ -22,17 +23,17 @@ public class SensorService {
         this.beanValidator = beanValidator;
     }
 
-    public List<SensorValueDtoResponse> updateSensorsValues(List<UpdateSensorValueDtoRequest> values) {
-        var response = new ArrayList<SensorValueDtoResponse>();
+    public SensorsValuesDtoResponse updateSensorsValues(List<UpdateSensorValueDtoRequest> values) {
+        var updatedValuesDtos = new ArrayList<SensorValueDtoResponse>();
         for (var value : values) {
             try {
                 beanValidator.validate(value);
-                response.add(updateSensorValue(value));
+                updatedValuesDtos.add(updateSensorValue(value));
             } catch (ConstraintViolationException e) {
                 LOGGER.error("Sensor value didn't pass validation", e);
             }
         }
-        return response;
+        return new SensorsValuesDtoResponse(updatedValuesDtos);
     }
 
     private SensorValueDtoResponse updateSensorValue(UpdateSensorValueDtoRequest request) {

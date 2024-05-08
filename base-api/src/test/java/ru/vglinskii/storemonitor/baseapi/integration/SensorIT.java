@@ -5,7 +5,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +22,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorValueDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorWithValueDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorWithValuesDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorsWithValueDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.sensor.SensorsWithValuesDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegisterSession;
 import ru.vglinskii.storemonitor.baseapi.model.Employee;
 import ru.vglinskii.storemonitor.baseapi.model.Sensor;
@@ -121,42 +122,44 @@ public class SensorIT extends IntegrationTestBase {
 
     @Test
     void whenStore1_getSensors_shouldReturnCorrectResponse() {
-        var expectedResponse = new SensorWithValueDtoResponse[]{
-                SensorWithValueDtoResponse.builder()
-                        .id(sensor1InStore1.getId())
-                        .inventoryNumber(sensor1InStore1.getInventoryNumber())
-                        .factoryCode(sensor1InStore1.getFactoryCode())
-                        .location(sensor1InStore1.getLocation())
-                        .value(SensorValueDtoResponse.builder()
-                                .unit(sensor1InStore1Values.getLast().getUnit())
-                                .value(sensor1InStore1Values.getLast().getValue())
-                                .datetime(sensor1InStore1Values.getLast().getDatetime())
+        var expectedResponse = new SensorsWithValueDtoResponse(
+                List.of(
+                        SensorWithValueDtoResponse.builder()
+                                .id(sensor1InStore1.getId())
+                                .inventoryNumber(sensor1InStore1.getInventoryNumber())
+                                .factoryCode(sensor1InStore1.getFactoryCode())
+                                .location(sensor1InStore1.getLocation())
+                                .value(SensorValueDtoResponse.builder()
+                                        .unit(sensor1InStore1Values.getLast().getUnit())
+                                        .value(sensor1InStore1Values.getLast().getValue())
+                                        .datetime(sensor1InStore1Values.getLast().getDatetime())
+                                        .build()
+                                )
+                                .build(),
+                        SensorWithValueDtoResponse.builder()
+                                .id(sensor2InStore1.getId())
+                                .inventoryNumber(sensor2InStore1.getInventoryNumber())
+                                .factoryCode(sensor2InStore1.getFactoryCode())
+                                .location(sensor2InStore1.getLocation())
+                                .value(SensorValueDtoResponse.builder()
+                                        .unit(sensor2InStore1Values.getLast().getUnit())
+                                        .value(sensor2InStore1Values.getLast().getValue())
+                                        .datetime(sensor2InStore1Values.getLast().getDatetime())
+                                        .build()
+                                )
                                 .build()
-                        )
-                        .build(),
-                SensorWithValueDtoResponse.builder()
-                        .id(sensor2InStore1.getId())
-                        .inventoryNumber(sensor2InStore1.getInventoryNumber())
-                        .factoryCode(sensor2InStore1.getFactoryCode())
-                        .location(sensor2InStore1.getLocation())
-                        .value(SensorValueDtoResponse.builder()
-                                .unit(sensor2InStore1Values.getLast().getUnit())
-                                .value(sensor2InStore1Values.getLast().getValue())
-                                .datetime(sensor2InStore1Values.getLast().getDatetime())
-                                .build()
-                        )
-                        .build()
-        };
+                )
+        );
 
         var response = restTemplate.exchange(
                 BASE_API_URL,
                 HttpMethod.GET,
                 new HttpEntity<>(createAuthorizationHeader(directorFromStore1)),
-                SensorWithValueDtoResponse[].class
+                SensorsWithValueDtoResponse.class
         );
 
         Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
-        Assertions.assertArrayEquals(expectedResponse, response.getBody());
+        Assertions.assertEquals(expectedResponse, response.getBody());
     }
 
     @Test
@@ -165,7 +168,7 @@ public class SensorIT extends IntegrationTestBase {
                 BASE_API_URL,
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                SensorWithValueDtoResponse[].class
+                SensorsWithValueDtoResponse.class
         );
         Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
@@ -217,7 +220,7 @@ public class SensorIT extends IntegrationTestBase {
                 Map.entry(sensor1InStore1.getId(), sensor1InStore1Values),
                 Map.entry(sensor2InStore1.getId(), sensor2InStore1Values)
         );
-        var expectedResponse = Stream.of(sensor1InStore1, sensor2InStore1)
+        var expectedSensors = Stream.of(sensor1InStore1, sensor2InStore1)
                 .map((sensor) -> SensorWithValuesDtoResponse.builder()
                         .id(sensor.getId())
                         .inventoryNumber(sensor.getInventoryNumber())
@@ -232,7 +235,7 @@ public class SensorIT extends IntegrationTestBase {
                                         .unit(value.getUnit())
                                         .build()
                                 )
-                                .collect(Collectors.toList())
+                                .toList()
                         )
                         .build()
                 )
@@ -249,13 +252,13 @@ public class SensorIT extends IntegrationTestBase {
                 urlTemplate,
                 HttpMethod.GET,
                 new HttpEntity<>(createAuthorizationHeader(directorFromStore1)),
-                SensorWithValuesDtoResponse[].class,
+                SensorsWithValuesDtoResponse.class,
                 prepareParams(from, to)
         );
         var responseBody = response.getBody();
 
         Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
-        Assertions.assertTrue(expectedResponse.containsAll(List.of(responseBody)));
+        Assertions.assertTrue(expectedSensors.containsAll(responseBody.getSensors()));
     }
 
     @Test
@@ -271,7 +274,7 @@ public class SensorIT extends IntegrationTestBase {
                 urlTemplate,
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                SensorWithValuesDtoResponse[].class,
+                SensorsWithValuesDtoResponse.class,
                 prepareParams(BASE_DATE, BASE_DATE.plus(1, ChronoUnit.DAYS))
         );
         Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());

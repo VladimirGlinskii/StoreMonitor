@@ -2,6 +2,7 @@ package ru.vglinskii.storemonitor.baseapi.integration;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import ru.vglinskii.storemonitor.baseapi.dto.ErrorDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorsDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterStatusDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersStatusesDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
 import ru.vglinskii.storemonitor.baseapi.model.CashRegister;
@@ -417,60 +419,64 @@ public class CashRegisterIT extends IntegrationTestBase {
                 BASE_API_URL + "/statuses",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                CashRegisterStatusDtoResponse[].class
+                CashRegistersStatusesDtoResponse.class
         );
         Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
     @Test
     void whenStore1_getStatuses_shouldReturnCorrectResponse() {
-        var expectedResponse = new CashRegisterStatusDtoResponse[]{
-                CashRegisterStatusDtoResponse.builder()
-                        .id(cashRegister1InStore1.getId())
-                        .inventoryNumber(cashRegister1InStore1.getInventoryNumber())
-                        .opened(true)
-                        .build(),
-                CashRegisterStatusDtoResponse.builder()
-                        .id(cashRegister2InStore1.getId())
-                        .inventoryNumber(cashRegister2InStore1.getInventoryNumber())
-                        .opened(false)
-                        .build()
-        };
+        var expectedResponse = new CashRegistersStatusesDtoResponse(
+                List.of(
+                        CashRegisterStatusDtoResponse.builder()
+                                .id(cashRegister1InStore1.getId())
+                                .inventoryNumber(cashRegister1InStore1.getInventoryNumber())
+                                .opened(true)
+                                .build(),
+                        CashRegisterStatusDtoResponse.builder()
+                                .id(cashRegister2InStore1.getId())
+                                .inventoryNumber(cashRegister2InStore1.getInventoryNumber())
+                                .opened(false)
+                                .build()
+                )
+        );
 
         var response = restTemplate.exchange(
                 BASE_API_URL + "/statuses",
                 HttpMethod.GET,
                 new HttpEntity<>(createAuthorizationHeader(directorFromStore1)),
-                CashRegisterStatusDtoResponse[].class
+                CashRegistersStatusesDtoResponse.class
         );
 
         Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
-        Assertions.assertArrayEquals(expectedResponse, response.getBody());
+        Assertions.assertEquals(expectedResponse, response.getBody());
     }
 
     @Test
     void whenStore2_getStatuses_shouldReturnCorrectResponse() {
-        var expectedResponse = new CashRegisterStatusDtoResponse[]{
-                CashRegisterStatusDtoResponse.builder()
-                        .id(cashRegister1InStore2.getId())
-                        .inventoryNumber(cashRegister1InStore2.getInventoryNumber())
-                        .opened(false)
-                        .build(),
-                CashRegisterStatusDtoResponse.builder()
-                        .id(cashRegister2InStore2.getId())
-                        .inventoryNumber(cashRegister2InStore2.getInventoryNumber())
-                        .opened(false)
-                        .build()
-        };
+        var expectedResponse = new CashRegistersStatusesDtoResponse(
+                List.of(
+                        CashRegisterStatusDtoResponse.builder()
+                                .id(cashRegister1InStore2.getId())
+                                .inventoryNumber(cashRegister1InStore2.getInventoryNumber())
+                                .opened(false)
+                                .build(),
+                        CashRegisterStatusDtoResponse.builder()
+                                .id(cashRegister2InStore2.getId())
+                                .inventoryNumber(cashRegister2InStore2.getInventoryNumber())
+                                .opened(false)
+                                .build()
+                )
+        );
 
         var response = restTemplate.exchange(
                 BASE_API_URL + "/statuses",
                 HttpMethod.GET,
                 new HttpEntity<>(createAuthorizationHeader(directorFromStore2)),
-                CashRegisterStatusDtoResponse[].class
+                CashRegistersStatusesDtoResponse.class
         );
 
         Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
-        Assertions.assertArrayEquals(expectedResponse, response.getBody());
+        Assertions.assertEquals(expectedResponse, response.getBody());
     }
 }

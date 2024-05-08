@@ -2,7 +2,6 @@ package ru.vglinskii.storemonitor.baseapi.controller;
 
 import jakarta.validation.Valid;
 import java.time.Instant;
-import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterDtoResponse;
-import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegisterStatusDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersStatusesDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CashRegistersWorkSummaryDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.cashregister.CreateCashRegisterDtoRequest;
 import ru.vglinskii.storemonitor.baseapi.service.CashRegisterService;
@@ -49,7 +48,7 @@ public class CashRegisterController {
     }
 
     @GetMapping("statuses")
-    public List<CashRegisterStatusDtoResponse> getStatuses() {
+    public CashRegistersStatusesDtoResponse getStatuses() {
         return cashRegisterService.getStatuses();
     }
 

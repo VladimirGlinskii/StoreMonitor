@@ -16,9 +16,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import ru.vglinskii.storemonitor.baseapi.TestBase;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.dto.ErrorsDtoResponse;
+import ru.vglinskii.storemonitor.baseapi.dto.decommissionedreport.DecommissionedReportsDtoResponse;
 import ru.vglinskii.storemonitor.baseapi.exception.ErrorCode;
 import ru.vglinskii.storemonitor.baseapi.service.DecommissionedReportService;
 import ru.vglinskii.storemonitor.baseapi.utils.DecommissionedReportTestApi;
@@ -39,7 +39,7 @@ public class DecommissionedReportControllerTest extends ControllerTestBase {
         var to = Instant.now();
 
         Mockito.when(decommissionedReportService.getAll(from, to))
-                .thenReturn(List.of());
+                .thenReturn(new DecommissionedReportsDtoResponse());
 
         decommissionedReportTestApi.getAll(testDirector, from.toString(), to.toString())
                 .andExpect(status().is2xxSuccessful());
