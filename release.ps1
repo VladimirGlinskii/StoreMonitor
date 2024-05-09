@@ -1,3 +1,5 @@
+mvn clean
+
 .\build-base-api.ps1
 if ($LASTEXITCODE -ne 0) {
   throw "Failed to build base api image"
