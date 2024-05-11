@@ -1,5 +1,9 @@
 package ru.vglinskii.storemonitor.cashiersimulator;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import java.io.File;
 import java.util.SplittableRandom;
 import java.util.random.RandomGenerator;
 import org.slf4j.Logger;
@@ -42,6 +46,7 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
             CashRegisterServiceClient cashRegisterServiceClient,
             RandomGenerator randomGenerator
     ) {
+        configureLoggingConfig();
         this.databaseConnectivity = databaseConnectivity;
         var cashierDao = new CashierDao(databaseConnectivity);
         var cashRegisterDao = new CashRegisterDao(databaseConnectivity);
@@ -65,6 +70,21 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
             LOGGER.error("Unhandled exception", e);
 
             throw e;
+        }
+    }
+
+    private void configureLoggingConfig() {
+        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+        File configFile = new File("/function/code/logback.xml");
+        if (configFile.exists()) {
+            try {
+                JoranConfigurator configurator = new JoranConfigurator();
+                configurator.setContext(context);
+                context.reset();
+                configurator.doConfigure(configFile);
+            } catch (JoranException je) {
+                System.out.println(je.getMessage());
+            }
         }
     }
 }

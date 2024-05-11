@@ -1,5 +1,9 @@
 package ru.vglinskii.storemonitor.authfunction;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.authfunction.dao.EmployeeDao;
@@ -24,6 +28,7 @@ public class Handler implements YcFunction<HttpRequestDto, ResponseDto> {
     }
 
     public Handler(DatabaseConnectivity databaseConnectivity) {
+        configureLoggingConfig();
         this.databaseConnectivity = databaseConnectivity;
         var employeeDao = new EmployeeDao(databaseConnectivity);
         this.authService = new AuthService(employeeDao);
@@ -45,6 +50,21 @@ public class Handler implements YcFunction<HttpRequestDto, ResponseDto> {
             LOGGER.error("Unhandled exception", e);
 
             throw e;
+        }
+    }
+
+    private void configureLoggingConfig() {
+        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+        File configFile = new File("/function/code/logback.xml");
+        if (configFile.exists()) {
+            try {
+                JoranConfigurator configurator = new JoranConfigurator();
+                configurator.setContext(context);
+                context.reset();
+                configurator.doConfigure(configFile);
+            } catch (JoranException je) {
+                System.out.println(je.getMessage());
+            }
         }
     }
 }

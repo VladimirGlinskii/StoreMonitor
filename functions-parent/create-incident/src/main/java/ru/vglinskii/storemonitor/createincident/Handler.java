@@ -1,7 +1,11 @@
 package ru.vglinskii.storemonitor.createincident;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
 import java.util.Map;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -39,6 +43,7 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
     }
 
     public Handler(DatabaseConnectivity databaseConnectivity) {
+        configureLoggingConfig();
         this.objectMapper = new AppObjectMapper();
         this.globalExceptionHandler = new GlobalExceptionHandler(objectMapper);
         this.beanValidator = new BeanValidator();
@@ -68,5 +73,20 @@ public class Handler implements YcFunction<HttpRequestDto, HttpResponseDto> {
                 throw new AppRuntimeException(ErrorCode.INVALID_REQUEST);
             }
         });
+    }
+
+    private void configureLoggingConfig() {
+        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+        File configFile = new File("/function/code/logback.xml");
+        if (configFile.exists()) {
+            try {
+                JoranConfigurator configurator = new JoranConfigurator();
+                configurator.setContext(context);
+                context.reset();
+                configurator.doConfigure(configFile);
+            } catch (JoranException je) {
+                System.out.println(je.getMessage());
+            }
+        }
     }
 }

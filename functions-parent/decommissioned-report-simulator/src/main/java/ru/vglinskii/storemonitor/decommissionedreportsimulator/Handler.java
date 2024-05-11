@@ -1,6 +1,10 @@
 package ru.vglinskii.storemonitor.decommissionedreportsimulator;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
 import com.amazonaws.auth.BasicAWSCredentials;
+import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vglinskii.storemonitor.decommissionedreportsimulator.serviceclient.StorageServiceClient;
@@ -49,6 +53,7 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
             StorageServiceClient storageServiceClient,
             CommodityService commodityService
     ) {
+        configureLoggingConfig();
         this.databaseConnectivity = databaseConnectivity;
 
         var storeDao = new StoreDao(databaseConnectivity);
@@ -76,6 +81,21 @@ public class Handler implements YcFunction<TriggerRequestDto, String> {
             LOGGER.error("Unhandled exception", e);
 
             throw e;
+        }
+    }
+
+    private void configureLoggingConfig() {
+        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+        File configFile = new File("/function/code/logback.xml");
+        if (configFile.exists()) {
+            try {
+                JoranConfigurator configurator = new JoranConfigurator();
+                configurator.setContext(context);
+                context.reset();
+                configurator.doConfigure(configFile);
+            } catch (JoranException je) {
+                System.out.println(je.getMessage());
+            }
         }
     }
 }
